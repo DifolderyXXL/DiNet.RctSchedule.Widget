@@ -31,42 +31,37 @@ class UpdateWidgetDataWorker : ActionCallback {
             MyAppWidget().update(context, glanceId)
         }
     }
+}
 
-    private suspend fun loadData(): ExcelTable? = withContext(Dispatchers.IO) {
-        try {
+suspend fun loadData(): ExcelTable? = withContext(Dispatchers.IO) {
+    try {
 
-            val url =
-                URL("https://docs.google.com/spreadsheets/d/11LI8TxCfm8zyniVfH4gCaEzzgpTlSqHWeDob5sprBxw/export?format=xlsx")
+        val url =
+            URL("https://docs.google.com/spreadsheets/d/11LI8TxCfm8zyniVfH4gCaEzzgpTlSqHWeDob5sprBxw/export?format=xlsx")
 
-            val rp = ExcelParser()
+        val rp = ExcelParser()
 
-            val fromCol = CellReference.convertColStringToIndex("F")
-            val fromColMeta = CellReference.convertColStringToIndex("B")
+        val fromCol = CellReference.convertColStringToIndex("F")
+        val fromColMeta = CellReference.convertColStringToIndex("B")
 
 
-            var cols = rp.parseMultipleColumns(
-                url.openStream(),
-                0,
-                100,
-                2,
-                listOf(fromColMeta, fromCol)
-            )
+        var cols = rp.parseMultipleColumns(
+            url.openStream(),
+            0,
+            100,
+            2,
+            listOf(fromColMeta, fromCol)
+        )
 
-            CombineTableColumns(cols)
-
-            /*            parser.readExcelFile(
-                            url,
-                            XLColumn("F", "G")
-                        )*/
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
+        CombineTableColumns(cols)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
+}
 
-    private fun <T> saveData(context: Context, glanceId: GlanceId, data: T?) {
-        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-        val json = Gson().toJson(data)
-        prefs.edit().putString("widget_data_${glanceId}", json).apply()
-    }
+fun <T> saveData(context: Context, glanceId: GlanceId, data: T?) {
+    val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+    val json = Gson().toJson(data)
+    prefs.edit().putString("widget_data_${glanceId}", json).apply()
 }

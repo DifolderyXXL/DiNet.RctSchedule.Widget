@@ -3,6 +3,8 @@ package com.example.rctschedule
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.glance.*
@@ -13,15 +15,22 @@ import androidx.glance.Button
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
-import com.example.rctschedule.Services.ExcelCell
-import com.example.rctschedule.Services.ExcelTable
-import com.example.rctschedule.Services.ExcelTableColumns
+import com.example.rctschedule.Model.WidgetModelRepository
+import com.example.rctschedule.Services.*
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.jvm.java
 import kotlin.math.max
+
+sealed interface State {
+
+    object Loading : State
+    object Error : State
+    data class Completed(val table: TransformExcelTable) : State
+}
+
 
 class MyAppWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -47,19 +56,51 @@ class MyAppWidget : GlanceAppWidget() {
             Log.e("LOGSCHEDULE", e.toString())
         }
 
+        val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
+        val repository = WidgetModelRepository.get(context)
 
         provideContent {
-            Log.e("LOGSCHEDULE", "Produce")
+            Content(context, widgetId, repository)
+
+            /*Log.e("LOGSCHEDULE", "Produce")
             if (result == null) {
                 MyContent(id)
             } else {
                 TableView(context, result)
-            }
+            }*/
         }
     }
 
     @Composable
-    private fun MyContent(id: GlanceId) {
+    private fun Content(context: Context, widgetId: Int, repository: WidgetModelRepository)
+    {
+        val destinations by repository.loadOrCreate(widgetId).collectAsState(State.Loading)
+
+        when (destinations) {
+            is State.Loading -> {
+                Button(text = "Update",
+                    onClick = {
+                        repository.updateModel(widgetId)
+                    })
+            }
+
+            is State.Error -> {
+                Text("Error")
+            }
+
+            is State.Completed -> {
+
+                val table = (destinations as State.Completed).table
+                TableView(context, table)
+            }
+
+            else -> {}
+        }
+    }
+
+
+    @Composable
+    private fun ZeroContent(id: GlanceId) {
         Log.e("LOGSCHEDULE", "Redraw")
         Column(
             modifier = GlanceModifier.fillMaxSize(),
@@ -72,9 +113,6 @@ class MyAppWidget : GlanceAppWidget() {
                     text = "Home",
                     onClick = actionRunCallback<UpdateWidgetDataWorker>()
                 )
-
-
-
             }
         }
     }
@@ -157,88 +195,3 @@ class MyAppWidget : GlanceAppWidget() {
 
 }
 
-public fun CombineTableColumns(table: ExcelTableColumns)
-    :ExcelTable
-{
-    val res = ArrayList<ArrayList<ExcelCell>>()
-
-    val rowCount: Int = table.columns[0].totalRows
-    var colCount: Int = 0
-
-    for(i in table.columns)
-        colCount += i.totalCols
-
-    for(i in 0 until rowCount)
-    {
-        var row = ArrayList<ExcelCell>()
-
-        for(t in table.columns)
-        {
-            for(r in t.rows[i])
-            {
-               row.add(r)
-            }
-        }
-
-        res.add(row)
-    }
-
-    return ExcelTable(res, rowCount, colCount)
-}
-
-public fun TransformTable(table: ExcelTable) : TransformExcelTable
-{
-    val rows = ArrayList<TransformExcelRow>()
-    var r = 0
-    while(r < table.totalRows)
-    {
-        var maxH = 1
-        for(c in 0 until table.totalCols)
-        {
-            val cell = table.rows[r][c]
-            maxH = max(maxH, cell.rowSpan)
-        }
-        val cols = ArrayList<TransformExcelColumn>()
-
-        var tm = 0
-        var c = 0
-        while(c < table.totalCols)
-        {
-            val col = ArrayList<ExcelCell>()
-
-            var maxW = 1
-            for(e in 0 until maxH - table.rows[r][c].rowSpan+1)
-            {
-                if(r+e >= table.totalRows)
-                    break
-
-                col.add(table.rows[r+e][c])
-                maxW = max(maxW, table.rows[r+e][c].colSpan)
-            }
-
-            tm = max(tm, col.count())
-            cols.add(TransformExcelColumn(maxW, col))
-            c += maxW
-        }
-
-        rows.add(TransformExcelRow(maxH, cols))
-        r+=maxH
-    }
-
-    return TransformExcelTable(rows)
-}
-
-
-data class TransformExcelTable(
-    val rows: List<TransformExcelRow>
-)
-
-data class TransformExcelColumn(
-    val width: Int,
-    val rows: List<ExcelCell>
-)
-
-data class TransformExcelRow(
-    val height: Int,
-    val columns: List<TransformExcelColumn>
-)

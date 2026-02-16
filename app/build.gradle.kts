@@ -2,6 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+
+
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android)
 }
 
 
@@ -50,12 +54,17 @@ android {
         kotlinCompilerExtensionVersion = "1.5.4"
     }
 }
+
 configurations.all {
     resolutionStrategy {
-        force("com.google.guava:guava:31.0.1-android")
-        // Or use a version that's compatible with all your dependencies
+        // 1. Форсируем использование "пустой" версии listenablefuture, чтобы не было дубликатов
+        force("com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava")
+
+        // 2. Форсируем единую современную версию Guava для всех библиотек (включая POI и Glance)
+        force("com.google.guava:guava:33.3.1-android")
     }
 }
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -86,9 +95,13 @@ dependencies {
     }
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
 }
 
 dependencies {
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    ksp("com.google.guava:guava:33.3.1-jre")
     // Core Apache POI library
     implementation("org.apache.poi:poi:5.5.0") // Check for the latest version
 
