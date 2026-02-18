@@ -5,7 +5,6 @@ import com.example.rctschedule.Services.ExcelTable
 import com.example.rctschedule.Services.ExcelTableColumns
 import kotlin.math.max
 
-
 public fun CombineTableColumns(table: ExcelTableColumns)
         :ExcelTable
 {

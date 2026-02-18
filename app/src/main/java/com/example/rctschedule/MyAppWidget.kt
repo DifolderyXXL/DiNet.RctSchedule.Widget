@@ -15,22 +15,22 @@ import androidx.glance.Button
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
+import com.example.rctschedule.Model.DataState
 import com.example.rctschedule.Model.WidgetModelRepository
+import com.example.rctschedule.Model.WidgetViewModel
 import com.example.rctschedule.Services.*
 import com.google.gson.Gson
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.util.Date
+import javax.inject.Inject
 import kotlin.jvm.java
-import kotlin.math.max
-
-sealed interface State {
-
-    object Loading : State
-    object Error : State
-    data class Completed(val table: TransformExcelTable) : State
-}
-
 
 class MyAppWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -38,115 +38,70 @@ class MyAppWidget : GlanceAppWidget() {
         // In this method, load data needed to render the AppWidget.
         // Use `withContext` to switch to another thread for long running
         // operations.
-
-        var result : TransformExcelTable? = null
-        try {
-            val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-            val json = prefs.getString("widget_data_${id}", null)
-            val dr = if (json != null) {
-                Gson().fromJson(json, ExcelTable::class.java)
-            } else null
-
-            if(dr != null)
-                result = TransformTable(dr)
-
-            Log.e("LOGSCHEDULE", "Sub on ${id}; json ${json}")
-        }
-        catch (e: Exception){
-            Log.e("LOGSCHEDULE", e.toString())
-        }
-
         val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
-        val repository = WidgetModelRepository.get(context)
+
+        val vm = WidgetModelRepository.get(context).loadOrCreate()
 
         provideContent {
-            Content(context, widgetId, repository)
-
-            /*Log.e("LOGSCHEDULE", "Produce")
-            if (result == null) {
-                MyContent(id)
-            } else {
-                TableView(context, result)
-            }*/
+            Content(context, vm)
         }
     }
 
     @Composable
-    private fun Content(context: Context, widgetId: Int, repository: WidgetModelRepository)
+    private fun Content(context: Context, viewModel: WidgetViewModel)
     {
-        val destinations by repository.loadOrCreate(widgetId).collectAsState(State.Loading)
+        val state by viewModel.state.collectAsState(DataState.Null)
 
-        when (destinations) {
-            is State.Loading -> {
-                Button(text = "Update",
+        when(state)
+        {
+            is DataState.Completed ->{
+                val currentState =(state as DataState.Completed)
+                Column {
+                    Text("Last Update at ${currentState.updateTime}")
+                    Button(
+                        text = "Force",
+                        onClick = {
+                            viewModel.forceUpdateCommand()
+                        }
+                    )
+                    Button(
+                        text = "Lite",
+                        onClick = {
+                            viewModel.updateCommand()
+                        }
+                    )
+
+                    TableView(currentState.table)
+                }
+
+            }
+            else ->{
+                Button(text = "Force load",
                     onClick = {
-                        repository.updateModel(widgetId)
+                        runBlocking {
+                            viewModel.forceUpdateCommand()
+                        }
                     })
             }
-
-            is State.Error -> {
-                Text("Error")
-            }
-
-            is State.Completed -> {
-
-                val table = (destinations as State.Completed).table
-                TableView(context, table)
-            }
-
-            else -> {}
         }
+
     }
 
 
     @Composable
-    private fun ZeroContent(id: GlanceId) {
-        Log.e("LOGSCHEDULE", "Redraw")
-        Column(
-            modifier = GlanceModifier.fillMaxSize(),
-            verticalAlignment = Alignment.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = "Where to?", modifier = GlanceModifier.padding(12.dp))
-            Row(horizontalAlignment = Alignment.CenterHorizontally) {
-                Button(
-                    text = "Home",
-                    onClick = actionRunCallback<UpdateWidgetDataWorker>()
-                )
-            }
-        }
-    }
-
-
-    @Composable
-    fun TableView(context: Context, pr: TransformExcelTable)
+    fun TableView(pr: TransformExcelTable)
     {
-        Column(modifier = GlanceModifier.fillMaxWidth())
+
+        LazyColumn(modifier = GlanceModifier.fillMaxWidth())
         {
-            Button(
-                text = "Home",
-                onClick = actionRunCallback<UpdateWidgetDataWorker>()
-            )
-            Button(
-                text = "update",
-                onClick = {
-                    CoroutineScope(Dispatchers.Default).launch {
-                        MyAppWidget().updateAll(context)
-                    }
-                }
-            )
-
-
-            LazyColumn()
-            {
-                items(items = pr.rows) { item ->
-                    Column {
-                        RowView(item)
-                        Spacer(modifier = GlanceModifier.height(8.dp))
-                    }
+            items(items = pr.rows) { item ->
+                Column {
+                    RowView(item)
+                    Spacer(modifier = GlanceModifier.height(8.dp))
                 }
             }
         }
+
     }
 
 
