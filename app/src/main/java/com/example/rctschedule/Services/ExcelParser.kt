@@ -27,8 +27,10 @@ data class ExcelTableColumns(val columns: List<ExcelTable>){
     constructor() : this(emptyList())
 }
 
+data class ColumnArgument(val colCount: Int, val startCol: Int)
+
 class ExcelParser {
-    fun parseMultipleColumns(inputStream: InputStream, startRow: Int, rowCount: Int, colCount: Int, columns: List<Int>)
+    fun parseMultipleColumns(inputStream: InputStream, startRow: Int, rowCount: Int, columns: List<ColumnArgument>)
     : ExcelTableColumns{
 
         val workbook = XSSFWorkbook(inputStream)
@@ -36,7 +38,7 @@ class ExcelParser {
         val result = ArrayList<ExcelTable>()
         for(i in columns)
         {
-            result.add(parseTable(workbook, startRow, i, rowCount, colCount))
+            result.add(parseTable(workbook, startRow, i.startCol, rowCount, i.colCount))
         }
 
         return ExcelTableColumns(result);

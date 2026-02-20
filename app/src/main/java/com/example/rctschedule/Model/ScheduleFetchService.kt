@@ -2,19 +2,19 @@ package com.example.rctschedule.Model
 
 import com.example.rctschedule.CombineTableColumns
 import com.example.rctschedule.Modules.IoDispatcher
+import com.example.rctschedule.Services.ColumnArgument
 import com.example.rctschedule.Services.ExcelParser
 import com.example.rctschedule.Services.ExcelTable
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.apache.poi.ss.util.CellReference
 import java.net.URL
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
 class ScheduleFetchService @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    suspend fun fetchAsync() : ExcelTable?
+    suspend fun fetchAsync() : Result<ExcelTable>
     {
         var result: ExcelTable? = null
         withContext(ioDispatcher)
@@ -28,20 +28,22 @@ class ScheduleFetchService @Inject constructor(
                 val fromCol = CellReference.convertColStringToIndex("F")
                 val fromColMeta = CellReference.convertColStringToIndex("B")
 
-                var cols = rp.parseMultipleColumns(
+                val cols = rp.parseMultipleColumns(
                     url.openStream(),
-                    0,
+                    5,
                     100,
-                    2,
-                    listOf(fromColMeta, fromCol)
+                    listOf(
+                        ColumnArgument(2, fromColMeta),
+                        ColumnArgument(2, fromCol))
                 )
 
-                result = CombineTableColumns(cols)
+                result = CombineTableColumns(cols, true)
             } catch (e: Exception) {
                 e.printStackTrace()
+                Result.failure<ExcelTable>(e)
             }
         }
 
-        return result
+        return Result.success(result!!)
     }
 }

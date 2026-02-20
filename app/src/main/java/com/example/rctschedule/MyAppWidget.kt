@@ -12,25 +12,16 @@ import androidx.glance.appwidget.*
 import androidx.glance.layout.*
 import androidx.glance.text.Text
 import androidx.glance.Button
-import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
+import androidx.glance.text.TextStyle
 import com.example.rctschedule.Model.DataState
+import com.example.rctschedule.Model.FetchState
 import com.example.rctschedule.Model.WidgetModelRepository
 import com.example.rctschedule.Model.WidgetViewModel
 import com.example.rctschedule.Services.*
-import com.google.gson.Gson
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.Date
-import javax.inject.Inject
-import kotlin.jvm.java
 
 class MyAppWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -40,12 +31,48 @@ class MyAppWidget : GlanceAppWidget() {
         // operations.
         val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 
+        Log.e("E", "E")
+
         val vm = WidgetModelRepository.get(context).loadOrCreate()
 
         provideContent {
+
+
             Content(context, vm)
         }
     }
+
+
+    @Composable
+    private fun FetchingStateContent(viewModel: WidgetViewModel)
+    {
+        val state by viewModel.fetchState.collectAsState(FetchState.Null)
+
+        Box {
+            when (state) {
+                is FetchState.Null -> {
+                    Text("Null",
+                        style = TextStyle(
+                            color = GlanceTheme.colors.onSurface
+                        )
+                    )
+                }
+
+                is FetchState.Error -> {
+                    Text("Error")
+                }
+
+                is FetchState.Fetching -> {
+                    Text("Fetching")
+                }
+
+                is FetchState.Completed -> {
+                    Text("Completed")
+                }
+            }
+        }
+    }
+
 
     @Composable
     private fun Content(context: Context, viewModel: WidgetViewModel)
@@ -56,22 +83,33 @@ class MyAppWidget : GlanceAppWidget() {
         {
             is DataState.Completed ->{
                 val currentState =(state as DataState.Completed)
-                Column {
-                    Text("Last Update at ${currentState.updateTime}")
-                    Button(
-                        text = "Force",
-                        onClick = {
-                            viewModel.forceUpdateCommand()
-                        }
-                    )
-                    Button(
-                        text = "Lite",
-                        onClick = {
-                            viewModel.updateCommand()
-                        }
-                    )
+                Column(GlanceModifier.padding(top=10.dp)) {
+                    Text("${currentState.updateTime}")
+                    Row(GlanceModifier.fillMaxWidth()){
+                        FetchingStateContent(viewModel)
+                        Spacer(modifier = GlanceModifier.defaultWeight())
 
-                    TableView(currentState.table)
+                        Image(
+                            colorFilter = ColorFilter.tint(GlanceTheme.colors.secondary),
+                            provider = ImageProvider(R.drawable.baseline_refresh_24),
+                            contentDescription = null,
+                            modifier = GlanceModifier.cornerRadius(5.dp).clickable{
+                                viewModel.forceUpdateCommand()
+                            }
+                        )
+
+                    }
+
+                    LazyColumn(modifier = GlanceModifier.fillMaxWidth())
+                    {
+                        items(items = currentState.table.days) { item ->
+                            Column{
+
+                                TableView(item)
+                                Spacer(modifier = GlanceModifier.height(20.dp))
+                            }
+                        }
+                    }
                 }
 
             }
@@ -91,20 +129,16 @@ class MyAppWidget : GlanceAppWidget() {
     @Composable
     fun TableView(pr: TransformExcelTable)
     {
-
-        LazyColumn(modifier = GlanceModifier.fillMaxWidth())
-        {
-            items(items = pr.rows) { item ->
+        Column{
+            pr.rows.forEach { item ->
                 Column {
                     RowView(item)
-                    Spacer(modifier = GlanceModifier.height(8.dp))
+                    Spacer(modifier = GlanceModifier.height(4.dp))
                 }
             }
         }
 
     }
-
-
 
     @Composable
     fun RowView(c: TransformExcelRow)
@@ -118,7 +152,7 @@ class MyAppWidget : GlanceAppWidget() {
                 else
                     ColumnView(message, GlanceModifier.width(50.dp))
 
-                Spacer(modifier = GlanceModifier.width(8.dp))
+                Spacer(modifier = GlanceModifier.width(4.dp))
                 i++
             }
         }
@@ -131,7 +165,7 @@ class MyAppWidget : GlanceAppWidget() {
             c.rows.forEach { message ->
                 CellView(message, GlanceModifier
                     .defaultWeight())
-                Spacer(modifier = GlanceModifier.height(8.dp))
+                Spacer(modifier = GlanceModifier.height(4.dp))
             }
         }
     }
@@ -144,7 +178,7 @@ class MyAppWidget : GlanceAppWidget() {
                 .background(if (c.isMerged) Color.Red else Color.Gray)
         )
         {
-            Text(text = c.value + "\n(${c.rowSpan}, ${c.colSpan})")
+            Text(text = c.value)
         }
     }
 

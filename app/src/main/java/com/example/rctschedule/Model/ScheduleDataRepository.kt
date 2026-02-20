@@ -19,19 +19,26 @@ class ScheduleDataRepository @Inject constructor(
         _scheduleState.value = scheduleCacheService.load()
     }
 
-    suspend fun requestUpdate(forceUpdate: Boolean = false)
+    suspend fun requestUpdate(forceUpdate: Boolean = false) : Result<Boolean>
     {
         if(forceUpdate || shouldUpdate())
         {
-            val value = scheduleFetchService.fetchAsync() ?: return
+            val value = scheduleFetchService.fetchAsync()
+            if(value.isSuccess)
+            {
+                val resultValue = ScheduleCacheData.Ok(
+                    value.getOrThrow(),
+                    System.currentTimeMillis())
 
-            val resultValue = ScheduleCacheData.Ok(
-                value,
-                System.currentTimeMillis())
+                scheduleCacheService.save(resultValue)
+                _scheduleState.value = resultValue
 
-            scheduleCacheService.save(resultValue)
-            _scheduleState.value = resultValue
+                return Result.success(true)
+            }
+            return Result.failure(value.exceptionOrNull()!!)
         }
+
+        return Result.success(false)
     }
 
     fun shouldUpdate() : Boolean

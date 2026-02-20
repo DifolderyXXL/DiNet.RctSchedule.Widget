@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.rctschedule.TransformExcelTable
+import com.example.rctschedule.TransformExcelWeek
 import com.example.rctschedule.TransformTable
+import com.example.rctschedule.TransformWeek
 import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
@@ -21,14 +23,25 @@ sealed interface DataState {
     object Null: DataState
     object Loading : DataState
     object Error : DataState
-    data class Completed(val table: TransformExcelTable, val updateTime: Date) : DataState
+    data class Completed(val table: TransformExcelWeek, val updateTime: Date) : DataState
 }
+
+sealed interface FetchState
+{
+    object Null : FetchState
+    object Fetching : FetchState
+    object Error : FetchState
+    object Completed: FetchState
+}
+
 class WidgetViewModel(
     private val scheduleRepository: ScheduleDataRepository)
     : ViewModel()
 {
+    private val _fetchingState = MutableStateFlow<FetchState>(FetchState.Null)
     private val _state = MutableStateFlow<DataState>(DataState.Null);
     val state : StateFlow<DataState> = _state
+    val fetchState : StateFlow<FetchState> = _fetchingState
 
     init {
         viewModelScope.launch {
@@ -38,7 +51,7 @@ class WidgetViewModel(
                     {
                         is ScheduleCacheData.Ok->{
                             _state.value = DataState.Completed(
-                                TransformTable(state.table),
+                                TransformWeek(state.table, 0),
                                 Date(state.lastUpdateTime))
                         }
                         else -> {
@@ -49,20 +62,26 @@ class WidgetViewModel(
         }
     }
 
-    fun updateCommand()
+
+
+    suspend fun requestUpdateInternal(force: Boolean = false)
     {
-        viewModelScope.launch {
-            scheduleRepository.requestUpdate()
-        }
+        _fetchingState.value = FetchState.Fetching
+
+        val result = scheduleRepository.requestUpdate(force)
+
+        if(result.isSuccess)
+            _fetchingState.value = FetchState.Completed
+        else
+            _fetchingState.value = FetchState.Error
     }
 
     fun forceUpdateCommand()
     {
         viewModelScope.launch {
-            scheduleRepository.requestUpdate(true)
+            requestUpdateInternal(true)
         }
     }
-
 }
 
 @Singleton
