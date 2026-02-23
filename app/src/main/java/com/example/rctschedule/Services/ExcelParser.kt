@@ -1,9 +1,16 @@
 package com.example.rctschedule.Services
 
+import android.util.Log
+import com.example.rctschedule.Model.DateRange
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
+import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Date
+import kotlin.math.min
 
 data class ExcelCell(
     val value: String,
@@ -23,47 +30,76 @@ data class ExcelTable(
     constructor() : this(emptyList(), 0, 0)
 }
 
-data class ExcelTableColumns(val columns: List<ExcelTable>){
-    constructor() : this(emptyList())
+
+data class ExcelTableColumns(
+    val columns: List<ExcelTable>,
+    val dateRange: DateRange,
+    val weekNumber: Int
+                ){
+    constructor() : this(emptyList(), DateRange(), 0)
 }
 
 data class ColumnArgument(val colCount: Int, val startCol: Int)
 
 class ExcelParser {
+
+    private val tableNameRegular = Regex("(?<fromDate>\\d*.\\d*)-(?<toDate>\\d*.\\d*)\\s\\((?<weekNumber>\\d).*\\)")
+
+
+
     fun parseMultipleColumns(inputStream: InputStream, startRow: Int, rowCount: Int, columns: List<ColumnArgument>)
     : ExcelTableColumns{
 
         val workbook = XSSFWorkbook(inputStream)
 
+        val sheet = workbook.getSheetAt(0)
+
+        val r = tableNameRegular.find(sheet.sheetName)
+            ?: throw Exception("Can't parse sheet name")
+        val fromDate = r.groups["fromDate"]
+        val toDate = r.groups["toDate"]
+        val weekNumber = r.groups["weekNumber"]
+        if(fromDate == null || toDate == null || weekNumber == null)
+            throw Exception("Can't parse sheet name")
+
+        val formatter = SimpleDateFormat("dd.MM")
+
+        val dateRange = DateRange(
+            formatter.parse(fromDate.value)!!,
+            formatter.parse(toDate.value)!!)
+        val weekNumberInt = weekNumber.value.toInt()
+
         val result = ArrayList<ExcelTable>()
         for(i in columns)
         {
-            result.add(parseTable(workbook, startRow, i.startCol, rowCount, i.colCount))
+            result.add(parseTable(sheet, startRow, i.startCol, rowCount, i.colCount))
         }
 
-        return ExcelTableColumns(result);
+        workbook.close()
+
+
+        return ExcelTableColumns(result, dateRange, weekNumberInt)
     }
 
-    fun parseTable(workbook: XSSFWorkbook, startRow: Int, startCol: Int, rowCount: Int, colCount: Int): ExcelTable {
+    fun parseTable(sheet: XSSFSheet, startRow: Int, startCol: Int, rowCount: Int, colCount: Int): ExcelTable {
 
-        val sheet = workbook.getSheetAt(0)
 
         val mergedRegions = sheet.mergedRegions
 
         val tableData = mutableListOf<List<ExcelCell>>()
 
-        for (r in 0 until rowCount) {
-            val currentRow = sheet.getRow(startRow + r)
+        for (r in startRow until min(startRow + rowCount, sheet.lastRowNum)) {
+            val currentRow = sheet.getRow(r)
             val rowData = mutableListOf<ExcelCell>()
 
-            for (c in 0 until colCount) {
+            for (c in startCol until min(startCol+colCount, currentRow.lastCellNum.toInt())) {
                 try{
-                    val cell = currentRow.getCell(startCol + c)
+                    val cell = currentRow.getCell(c)
 
-                    val mergedRegion = findMergedRegion(mergedRegions, startRow + r, startCol + c)
+                    val mergedRegion = findMergedRegion(mergedRegions, r, c)
 
                     if (mergedRegion != null) {
-                        if (mergedRegion.firstRow <= startRow + r && mergedRegion.firstColumn <= startCol + c) {
+                        if (mergedRegion.firstRow <= r && mergedRegion.firstColumn <= c) {
                             val value = getCellValue(cell)
                             val rowSpan = mergedRegion.lastRow - mergedRegion.firstRow + 1
                             val colSpan = mergedRegion.lastColumn - mergedRegion.firstColumn + 1
@@ -87,8 +123,7 @@ class ExcelParser {
             }
         }
 
-        workbook.close()
-        return ExcelTable(tableData, tableData.size, colCount)
+        return ExcelTable(tableData, tableData.size, tableData[0].size)
     }
 
     private fun findMergedRegion(mergedRegions: List<CellRangeAddress>, row: Int, col: Int): CellRangeAddress? {

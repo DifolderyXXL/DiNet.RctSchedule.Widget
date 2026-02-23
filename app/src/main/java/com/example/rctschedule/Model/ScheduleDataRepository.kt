@@ -1,6 +1,7 @@
 package com.example.rctschedule.Model
 
 import android.util.Log
+import com.example.rctschedule.Services.TransformService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -8,7 +9,8 @@ import javax.inject.Inject
 class ScheduleDataRepository @Inject constructor(
     private val config: ScheduleUpdateConfig,
     private val scheduleFetchService: ScheduleFetchService,
-    private val scheduleCacheService: ScheduleCacheService
+    private val scheduleCacheService: ScheduleCacheService,
+    private val transformService: TransformService
 ) {
     private val _scheduleState =
         MutableStateFlow<ScheduleCacheData>(ScheduleCacheData.None)
@@ -23,11 +25,12 @@ class ScheduleDataRepository @Inject constructor(
     {
         if(forceUpdate || shouldUpdate())
         {
-            val value = scheduleFetchService.fetchAsync()
+            val value = scheduleFetchService.fetchAsync(0)
             if(value.isSuccess)
             {
+                val rawTable = value.getOrThrow()
                 val resultValue = ScheduleCacheData.Ok(
-                    value.getOrThrow(),
+                    transformService.Transform(rawTable),
                     System.currentTimeMillis())
 
                 scheduleCacheService.save(resultValue)

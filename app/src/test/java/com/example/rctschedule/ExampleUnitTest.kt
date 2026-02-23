@@ -1,13 +1,22 @@
 package com.example.rctschedule
 
 import android.util.Log
+import com.example.rctschedule.Model.GroupExcelTableDTO
+import com.example.rctschedule.Model.ScheduleCacheService
+import com.example.rctschedule.Model.ScheduleFetchService
 import com.example.rctschedule.Services.ExcelParser
-import com.example.rctschedule.Services.XLColumn
+import com.example.rctschedule.Services.TransformConfig
+import com.example.rctschedule.Services.TransformService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.runBlocking
 import org.apache.poi.ss.util.CellReference
+import org.junit.Assert
 import org.junit.Test
 
 import org.junit.Assert.*
 import java.net.URL
+import java.text.SimpleDateFormat
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -21,17 +30,32 @@ class ExampleUnitTest {
     }
 
     @Test
-    fun Er()
+    fun dateParsing()
     {
-        val url = URL("https://docs.google.com/spreadsheets/d/11LI8TxCfm8zyniVfH4gCaEzzgpTlSqHWeDob5sprBxw/export?format=xlsx")
+        val line = "23.02-28.02 (3-я неделя)"
+        val regular = Regex("(?<fromDate>\\d*.\\d*)-(?<toDate>\\d*.\\d*)\\s\\((?<weekNumber>\\d).*\\)")
+        val r = regular.find(line)
 
-        val rp = ExcelParser()
+        r?.groups["fromDate"]
+    }
 
-        val fromCol = CellReference.convertColStringToIndex("F")
-        val toCol = CellReference.convertColStringToIndex("G")
+    @Test
+    fun dateTransform()
+    {
+        val line=  "03.02"
+        val formatter = SimpleDateFormat("dd.MM")
 
-        val r = rp.parseTable(url.openStream(), 0, fromCol, 30, 2)
+        val date = formatter.parse(line)
+    }
 
-        System.out.println("${r.totalCols}, ${r.totalRows}")
+    @Test
+    fun scheduleServiceTest() = runBlocking{
+        val s = ScheduleFetchService(Dispatchers.IO)
+
+        val result = s.fetchAsync(0)
+
+        val ts = TransformService(TransformConfig(0))
+        val tab = ts.Transform(result.getOrNull()!!)
+        Assert.assertTrue(tab.weekTable.days.size == 6)
     }
 }

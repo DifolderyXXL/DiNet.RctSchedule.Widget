@@ -1,6 +1,7 @@
 package com.example.rctschedule.Modules
 
 import com.example.rctschedule.Model.ScheduleUpdateConfig
+import com.example.rctschedule.Services.TransformConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,6 +16,12 @@ object ScheduleModule {
     fun provideConfig() : ScheduleUpdateConfig
     {
         return ScheduleUpdateConfig(60)
+    }
+
+    @Provides
+    fun provideTransformConfig() : TransformConfig
+    {
+        return TransformConfig(0)
     }
 }
 

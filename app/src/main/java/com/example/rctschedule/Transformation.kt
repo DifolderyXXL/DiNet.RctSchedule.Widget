@@ -1,6 +1,5 @@
 package com.example.rctschedule
 
-import android.util.Log
 import com.example.rctschedule.Services.ExcelCell
 import com.example.rctschedule.Services.ExcelTable
 import com.example.rctschedule.Services.ExcelTableColumns
@@ -59,7 +58,7 @@ public fun TransformTable(inputRows: List<List<ExcelCell>>, totalRows: Int, tota
     while(r < totalRows)
     {
         var maxH = 1
-        for(c in 0 until totalCols)
+        for(c in 0 until inputRows[r].size)
         {
             val cell = inputRows[r][c]
             maxH = max(maxH, cell.rowSpan)
@@ -102,7 +101,7 @@ public fun TransformWeek(table: ExcelTable, subjectCountingColumn: Int) : Transf
 
     val days = ArrayList<TransformExcelTable>()
 
-    for(i in 0 until table.rows.size+1)
+    for(i in 1 until table.rows.size+1)
     {
         if(i != table.rows.size) {
             prev = currentValue
@@ -110,7 +109,6 @@ public fun TransformWeek(table: ExcelTable, subjectCountingColumn: Int) : Transf
             val dt = v.toFloatOrNull()
 
             if (dt == null) {
-                Log.e("E", "skip ${i} ${dt}")
                 slidingStart = i
                 continue
             }
@@ -124,15 +122,12 @@ public fun TransformWeek(table: ExcelTable, subjectCountingColumn: Int) : Transf
             val target = table.rows.subList(slidingStart, i-1)
             days.add(TransformTable(target, rows, table.totalCols))
 
-            Log.e("E", "${slidingStart}, ${i-1}, ${days.last().rows.size}, ${table.rows[0][0].value}")
             slidingStart = i
-
         }
     }
 
     return TransformExcelWeek(days)
 }
-
 
 data class TransformExcelTable(
     val rows: List<TransformExcelRow>

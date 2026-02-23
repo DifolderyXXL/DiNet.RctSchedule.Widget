@@ -3,12 +3,14 @@ package com.example.rctschedule.Model
 import android.content.Context
 import android.util.Log
 import com.example.rctschedule.Services.ExcelTable
+import com.example.rctschedule.Services.TransformService
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 class ScheduleCacheService @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val transformService: TransformService
 ) {
     private val PREFS_NAME = "schedule_widget_prefs"
     private val KEY_DATA = "excel_table_data"
@@ -47,10 +49,10 @@ class ScheduleCacheService @Inject constructor(
             if (json != null)
             {
                 val dr = Gson()
-                        .fromJson(json, ExcelTable::class.java)
+                        .fromJson(json, GroupExcelTableDTO::class.java)
 
                 if(dr != null)
-                    return ScheduleCacheData.Ok(dr, lastUpdateTeme)
+                    return ScheduleCacheData.Ok(transformService.Transform(dr), lastUpdateTeme)
             }
         }
         catch (e: Exception){
