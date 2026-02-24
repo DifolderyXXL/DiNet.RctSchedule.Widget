@@ -9,37 +9,27 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 class ScheduleCacheService @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val transformService: TransformService
+    @ApplicationContext private val context: Context
 ) {
     private val PREFS_NAME = "schedule_widget_prefs"
     private val KEY_DATA = "excel_table_data"
     private val KEY_LAST_UPDATE = "last_update_time"
 
-    fun save(data: ScheduleCacheData) {
+    fun save(data: CacheEntry<GroupExcelWeeksDTO>) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val json = Gson().toJson(data.data)
 
-        when(data)
+        Log.e("C", json.length.toString())
+
+        with(prefs.edit())
         {
-            is ScheduleCacheData.Ok ->{
-                val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val json = Gson().toJson(data.table)
-
-                Log.e("C", json.length.toString())
-
-                with(prefs.edit())
-                {
-                    putString(KEY_DATA, json)
-                    putLong(KEY_LAST_UPDATE, data.lastUpdateTime)
-                    apply()
-                }
-            }
-            else -> {
-
-            }
+            putString(KEY_DATA, json)
+            putLong(KEY_LAST_UPDATE, data.timestamp)
+            apply()
         }
     }
 
-    fun load() : ScheduleCacheData {
+    fun load() : CacheEntry<GroupExcelWeeksDTO>? {
         try {
             val prefs = context
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -49,15 +39,15 @@ class ScheduleCacheService @Inject constructor(
             if (json != null)
             {
                 val dr = Gson()
-                        .fromJson(json, GroupExcelTableDTO::class.java)
+                        .fromJson(json, GroupExcelWeeksDTO::class.java)
 
                 if(dr != null)
-                    return ScheduleCacheData.Ok(transformService.Transform(dr), lastUpdateTeme)
+                    return CacheEntry(dr, lastUpdateTeme)
             }
         }
         catch (e: Exception){
             e.printStackTrace()
         }
-        return ScheduleCacheData.None
+        return null
     }
 }

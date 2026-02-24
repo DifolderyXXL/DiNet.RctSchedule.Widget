@@ -1,15 +1,15 @@
 package com.example.rctschedule.Services
 
 import android.util.Log
+import com.example.rctschedule.CombineTableColumns
 import com.example.rctschedule.Model.DateRange
+import com.google.gson.Gson
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.InputStream
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.util.Date
 import kotlin.math.min
 
 data class ExcelCell(
@@ -31,13 +31,17 @@ data class ExcelTable(
 }
 
 
-data class ExcelTableColumns(
-    val columns: List<ExcelTable>,
+data class ExcelTableWeek(
+    val week: ExcelTable,
     val dateRange: DateRange,
     val weekNumber: Int
                 ){
-    constructor() : this(emptyList(), DateRange(), 0)
+    constructor() : this(ExcelTable(), DateRange(), 0)
 }
+
+data class ExcelSheetWeeks(
+    val weeks: List<ExcelTableWeek>
+)
 
 data class ColumnArgument(val colCount: Int, val startCol: Int)
 
@@ -45,40 +49,49 @@ class ExcelParser {
 
     private val tableNameRegular = Regex("(?<fromDate>\\d*.\\d*)-(?<toDate>\\d*.\\d*)\\s\\((?<weekNumber>\\d).*\\)")
 
-
-
     fun parseMultipleColumns(inputStream: InputStream, startRow: Int, rowCount: Int, columns: List<ColumnArgument>)
-    : ExcelTableColumns{
+    : ExcelSheetWeeks{
 
         val workbook = XSSFWorkbook(inputStream)
 
-        val sheet = workbook.getSheetAt(0)
-
-        val r = tableNameRegular.find(sheet.sheetName)
-            ?: throw Exception("Can't parse sheet name")
-        val fromDate = r.groups["fromDate"]
-        val toDate = r.groups["toDate"]
-        val weekNumber = r.groups["weekNumber"]
-        if(fromDate == null || toDate == null || weekNumber == null)
-            throw Exception("Can't parse sheet name")
-
-        val formatter = SimpleDateFormat("dd.MM")
-
-        val dateRange = DateRange(
-            formatter.parse(fromDate.value)!!,
-            formatter.parse(toDate.value)!!)
-        val weekNumberInt = weekNumber.value.toInt()
-
-        val result = ArrayList<ExcelTable>()
-        for(i in columns)
+        val weeks = ArrayList<ExcelTableWeek>()
+        for(i in 0 until workbook.numberOfSheets)
         {
-            result.add(parseTable(sheet, startRow, i.startCol, rowCount, i.colCount))
+            if(workbook.isSheetHidden(i) || workbook.isSheetVeryHidden(i))
+                continue
+
+            val sheet = workbook.getSheetAt(i)
+
+            val r = tableNameRegular.find(sheet.sheetName)
+                ?: throw Exception("Can't parse sheet name")
+            val fromDate = r.groups["fromDate"]
+            val toDate = r.groups["toDate"]
+            val weekNumber = r.groups["weekNumber"]
+            if(fromDate == null || toDate == null || weekNumber == null)
+                throw Exception("Can't parse sheet name")
+
+            val formatter = SimpleDateFormat("dd.MM")
+
+            val dateRange = DateRange(
+                formatter.parse(fromDate.value)!!,
+                formatter.parse(toDate.value)!!)
+            val weekNumberInt = weekNumber.value.toInt()
+
+            val result = ArrayList<ExcelTable>()
+            for(i in columns)
+            {
+                val de = parseTable(sheet, startRow, i.startCol, rowCount, i.colCount)
+                Log.e("AE", Gson().toJson(de))
+                result.add(de)
+            }
+
+            val combined = CombineTableColumns(result, true)
+            weeks.add(ExcelTableWeek(combined, dateRange, weekNumberInt))
         }
 
         workbook.close()
 
-
-        return ExcelTableColumns(result, dateRange, weekNumberInt)
+        return ExcelSheetWeeks(weeks)
     }
 
     fun parseTable(sheet: XSSFSheet, startRow: Int, startCol: Int, rowCount: Int, colCount: Int): ExcelTable {

@@ -4,6 +4,7 @@ import com.example.rctschedule.CombineTableColumns
 import com.example.rctschedule.Modules.IoDispatcher
 import com.example.rctschedule.Services.ColumnArgument
 import com.example.rctschedule.Services.ExcelParser
+import com.example.rctschedule.Services.ExcelSheetWeeks
 import com.example.rctschedule.Services.ExcelTable
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -28,9 +29,12 @@ object ExcelTableHelper
     fun getGroupColumnArgument(group: Int) : ColumnArgument{
         val index = CellReference.convertColStringToIndex(groupStartColumnLetter)
 
+        var add = 0
+        if(group > 5 -1)
+            add = 1
         return ColumnArgument(
             groupDefaultColumnCount,
-            index + group*groupDefaultColumnCount
+            index + group*groupDefaultColumnCount + add
         )
     }
 }
@@ -38,11 +42,9 @@ object ExcelTableHelper
 class ScheduleFetchService @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    suspend fun fetchAsync(group: Int) : Result<GroupExcelTableDTO>
+    suspend fun fetchAsync(group: Int) : Result<GroupExcelWeeksDTO>
     {
-        var result: ExcelTable? = null
-        var dateRange: DateRange? = null
-        var weekNumber: Int = 0
+        var result: GroupExcelWeeksDTO? = null
 
         try {
             withContext(ioDispatcher)
@@ -51,7 +53,7 @@ class ScheduleFetchService @Inject constructor(
 
                 val rp = ExcelParser()
 
-                val cols = rp.parseMultipleColumns(
+                val weeks = rp.parseMultipleColumns(
                     url.openStream(),
                     5,
                     100,
@@ -61,10 +63,7 @@ class ScheduleFetchService @Inject constructor(
                     )
                 )
 
-                dateRange = cols.dateRange
-                weekNumber = cols.weekNumber
-
-                result = CombineTableColumns(cols, true)
+                result = getWeeksDto(weeks, group)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -72,7 +71,21 @@ class ScheduleFetchService @Inject constructor(
             return Result.failure(e)
         }
 
-        return Result.success(
-            GroupExcelTableDTO(result!!, ExcelTableMetaData(group, dateRange!!, weekNumber)))
+        return Result.success(result!!)
+    }
+
+    private fun getWeeksDto(excelWeeks: ExcelSheetWeeks, group: Int) : GroupExcelWeeksDTO
+    {
+
+        val ar = ArrayList<GroupExcelTableDTO>()
+        for(i in 0 until excelWeeks.weeks.size)
+        {
+            val e = excelWeeks.weeks[i]
+            ar.add( GroupExcelTableDTO(
+                e.week,
+                ExcelTableMetaData(e.dateRange, e.weekNumber)))
+        }
+        return GroupExcelWeeksDTO(ar, group)
     }
 }
+

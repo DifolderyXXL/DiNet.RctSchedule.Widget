@@ -1,6 +1,5 @@
 package com.example.rctschedule.Model
 
-import androidx.compose.material3.DateRangePicker
 import com.example.rctschedule.Services.ExcelTable
 import com.example.rctschedule.TransformExcelWeek
 
@@ -9,6 +8,17 @@ data class ScheduleWeekData(
     val meta: ExcelTableMetaData
 )
 
+data class ScheduleGroupWeeksData(
+    val weeks: List<ScheduleWeekData>,
+    val group: Int
+)
+
+data class GroupExcelWeeksDTO(
+    val weeks: List<GroupExcelTableDTO>,
+    val group: Int
+){
+    constructor() :this(emptyList<GroupExcelTableDTO>(), 0){}
+}
 
 data class GroupExcelTableDTO(
     val table: ExcelTable,
@@ -18,9 +28,8 @@ data class GroupExcelTableDTO(
 }
 
 data class ExcelTableMetaData(
-    val group: Int,
     val dateRange: DateRange,
     val weekNumber: Int
 ){
-    constructor() :this(0, DateRange(), 0){}
+    constructor() :this(DateRange(), 0){}
 }

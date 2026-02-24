@@ -1,85 +1,106 @@
 package com.example.rctschedule.Model
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.rctschedule.Services.TransformService
-import com.example.rctschedule.TransformExcelTable
-import com.example.rctschedule.TransformWeek
+import com.example.rctschedule.TransformExcelDayTable
+import com.example.rctschedule.ViewModels.DaySelectionViewModel
+import com.example.rctschedule.ViewModels.SelectionViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.apache.commons.lang3.mutable.Mutable
 import java.util.Date
+
+class WeekViewModel : ViewModel()
+{
+    val weekDataState = MutableStateFlow<ScheduleWeekData?>(null)
+
+    val dayState = MutableStateFlow<TransformExcelDayTable?>(null)
+
+    val tableMetaData = MutableStateFlow(ExcelTableMetaData())
+
+    val daySelectionViewModel = DaySelectionViewModel()
+
+
+    init {
+        daySelectionViewModel.selectFlow.onEach { state ->
+            if(state != null)
+                showDay(state)
+        }.launchIn(viewModelScope)
+
+        weekDataState.onEach { state ->
+            showTargetDay(daySelectionViewModel.selectedIndex.value)
+        }.launchIn(viewModelScope)
+    }
+
+    public fun SetWeekSchedule(weekData: ScheduleWeekData)
+    {
+        weekDataState.value = weekData
+        tableMetaData.value = weekData.meta
+
+        daySelectionViewModel.SetSelection(weekData.weekTable.days)
+    }
+
+    fun showDay(day: TransformExcelDayTable)
+    {
+        dayState.value = day
+    }
+
+    fun showTargetDay(dayIndex: Int)
+    {
+        val value = weekDataState.value
+        if(value != null)
+        {
+            if(value.weekTable.days.size <= dayIndex || dayIndex < 0) {
+                return
+            }
+
+            dayState.value = value.weekTable.days[dayIndex]
+        }
+    }
+
+}
+
 
 class WidgetViewModel(
     private val scheduleRepository: ScheduleDataRepository)
     : ViewModel()
 {
-    private val _state = MutableStateFlow<ScheduleCacheData>(ScheduleCacheData.None)
+    private val _state = MutableStateFlow<Lce<CacheEntry<ScheduleGroupWeeksData>>>(Lce.Loading)
     private val _fetchingState = MutableStateFlow<FetchState>(FetchState.Null)
 
     val fetchState : StateFlow<FetchState> = _fetchingState
 
-    val dayState = MutableStateFlow<TransformExcelTable?>(null)
-
-    val selectedDay = MutableStateFlow(0)
-
     val lastUpdate = MutableStateFlow(Date(0))
-    val tableMetaData = MutableStateFlow(ExcelTableMetaData())
+    val group = MutableStateFlow<Int>(-1)
+
+    val weekViewModel = WeekViewModel()
+    val selectionViewModel = SelectionViewModel()
 
     init {
-
         scheduleRepository.scheduleState.onEach { state->
             _state.value = state
         }.launchIn(viewModelScope)
 
         _state.onEach{ se ->
-            if(se is ScheduleCacheData.Ok)
+            if(se is Lce.Content<CacheEntry<ScheduleGroupWeeksData>>)
             {
-                lastUpdate.value = Date(se.lastUpdateTime)
-                tableMetaData.value = se.table.meta
-            }
+                lastUpdate.value = Date(se.data.timestamp)
+                group.value = se.data.data.group
 
-            showTargetDay(selectedDay.value)
+                selectionViewModel.SetSelection(se.data.data.weeks)
+            }
         }.launchIn(viewModelScope)
 
-        selectedDay.onEach{ value ->
-            showTargetDay(value)
-        }.launchIn(viewModelScope)
-
-    }
-
-    fun showTargetDay(dayIndex: Int)
-    {
-        Log.e("E", "EVENMT")
-        if(_state.value is ScheduleCacheData.Ok)
-        {
-            val content = (_state.value as ScheduleCacheData.Ok)
-            val week = content.table.weekTable
-            if(week.days.size <= dayIndex || dayIndex < 0) {
-                Log.e("E", "EXC ${week.days.size}")
-                return
+        selectionViewModel.selectFlow.onEach { value ->
+            if(value != null)
+            {
+                weekViewModel.SetWeekSchedule(value)
             }
-
-            dayState.value = week.days[dayIndex]
-        }
+        }.launchIn(viewModelScope)
     }
 
-    fun nextDay()
-    {
-        selectedDay.value += 1
-    }
-
-    fun previousDay()
-    {
-        selectedDay.value -= 1
-    }
 
     suspend fun requestUpdateInternal(force: Boolean = false)
     {

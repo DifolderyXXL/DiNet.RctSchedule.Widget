@@ -2,23 +2,23 @@ package com.example.rctschedule
 
 import com.example.rctschedule.Services.ExcelCell
 import com.example.rctschedule.Services.ExcelTable
-import com.example.rctschedule.Services.ExcelTableColumns
 import kotlin.math.max
 
-public fun CombineTableColumns(table: ExcelTableColumns, clearEmptyRows: Boolean)
+
+public fun CombineTableColumns(table: List<ExcelTable>, clearEmptyRows: Boolean)
         :ExcelTable
 {
     val res = ArrayList<ArrayList<ExcelCell>>()
 
 
-    for(i in 0 until table.columns[0].totalRows)
+    for(i in 0 until table[0].totalRows)
     {
         if(clearEmptyRows && checkRowIsEmpty(table, i))
             continue
 
         val row = ArrayList<ExcelCell>()
 
-        for(t in table.columns)
+        for(t in table)
         {
             for(r in t.rows[i])
             {
@@ -33,10 +33,10 @@ public fun CombineTableColumns(table: ExcelTableColumns, clearEmptyRows: Boolean
     return ExcelTable(res, res.size, res[0].size)
 }
 
-public fun checkRowIsEmpty(table: ExcelTableColumns, row: Int)
+public fun checkRowIsEmpty(table: List<ExcelTable>, row: Int)
     : Boolean
 {
-    for(t in table.columns)
+    for(t in table)
     {
         for(r in t.rows[row])
         {
@@ -51,7 +51,7 @@ public fun checkRowIsEmpty(table: ExcelTableColumns, row: Int)
 }
 
 
-public fun TransformTable(inputRows: List<List<ExcelCell>>, totalRows: Int, totalCols: Int) : TransformExcelTable
+public fun TransformTable(inputRows: List<List<ExcelCell>>, totalRows: Int, totalCols: Int) : TransformExcelDayTable
 {
     val rows = ArrayList<TransformExcelRow>()
     var r = 0
@@ -90,7 +90,7 @@ public fun TransformTable(inputRows: List<List<ExcelCell>>, totalRows: Int, tota
         r+=maxH
     }
 
-    return TransformExcelTable(rows)
+    return TransformExcelDayTable(rows)
 }
 
 public fun TransformWeek(table: ExcelTable, subjectCountingColumn: Int) : TransformExcelWeek
@@ -99,7 +99,7 @@ public fun TransformWeek(table: ExcelTable, subjectCountingColumn: Int) : Transf
     var prev = 0f
     var slidingStart = 0
 
-    val days = ArrayList<TransformExcelTable>()
+    val days = ArrayList<TransformExcelDayTable>()
 
     for(i in 1 until table.rows.size+1)
     {
@@ -129,7 +129,7 @@ public fun TransformWeek(table: ExcelTable, subjectCountingColumn: Int) : Transf
     return TransformExcelWeek(days)
 }
 
-data class TransformExcelTable(
+data class TransformExcelDayTable(
     val rows: List<TransformExcelRow>
 )
 
@@ -144,5 +144,5 @@ data class TransformExcelRow(
 )
 
 data class TransformExcelWeek(
-    val days: List<TransformExcelTable>
+    val days: List<TransformExcelDayTable>
 )
