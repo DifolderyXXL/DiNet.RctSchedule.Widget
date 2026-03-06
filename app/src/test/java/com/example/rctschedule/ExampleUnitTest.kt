@@ -1,21 +1,14 @@
 package com.example.rctschedule
 
-import android.util.Log
-import com.example.rctschedule.Model.GroupExcelTableDTO
-import com.example.rctschedule.Model.ScheduleCacheService
-import com.example.rctschedule.Model.ScheduleFetchService
-import com.example.rctschedule.Services.ExcelParser
-import com.example.rctschedule.Services.TransformConfig
-import com.example.rctschedule.Services.TransformService
+import com.example.rctschedule.Services.ScheduleFetchService
+import com.example.rctschedule.Data.TransformConfig
+import com.example.rctschedule.Data.TransformService
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
-import org.apache.poi.ss.util.CellReference
 import org.junit.Assert
 import org.junit.Test
 
 import org.junit.Assert.*
-import java.net.URL
 import java.text.SimpleDateFormat
 
 /**
@@ -24,9 +17,12 @@ import java.text.SimpleDateFormat
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 class ExampleUnitTest {
+
+
     @Test
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
+
     }
 
     @Test

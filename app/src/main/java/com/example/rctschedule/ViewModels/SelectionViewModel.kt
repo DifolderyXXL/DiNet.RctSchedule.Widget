@@ -51,10 +51,15 @@ public open class BaseSelectionViewModel<T> : ViewModel(){
 class DaySelectionViewModel : BaseSelectionViewModel<TransformExcelDayTable>()
 {
     val selectedDayOfWeek = MutableStateFlow(DayOfWeek.MONDAY)
+    val isToday = MutableStateFlow<Boolean>(false)
+
 
     init {
         selectedIndex.onEach { state ->
             selectedDayOfWeek.value = DayOfWeek.of(clamp(state+1, 1, 7))
+
+            val date = LocalDateTime.now()
+            isToday.value = date.dayOfWeek == selectedDayOfWeek.value
         }.launchIn(viewModelScope)
     }
 

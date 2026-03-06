@@ -3,9 +3,9 @@
     android:description="@string/app_widget_description"
     android:minWidth="40dp"
     android:minHeight="40dp"
-    android:initialLayout="@layout/example_loading_appwidget"
+    android:initialLayout="@layout/glance_default_loading_layout"
     android:resizeMode="horizontal|vertical"
     android:targetCellWidth="2"
     android:targetCellHeight="2"
-    android:updatePeriodMillis="0"
+    android:updatePeriodMillis="43200000"
     android:widgetCategory="home_screen" />

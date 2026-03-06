@@ -18,7 +18,9 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.layout.width
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -37,9 +39,6 @@ class WeekSelectionView(val viewModel: SelectionViewModel) : GlanceView{
         val selection by viewModel.selectionList.collectAsState()
         val selectedIndex by viewModel.selectedIndex.collectAsState()
 
-
-
-        Log.e("MAMA", selection.size.toString())
         Row()
         {
             for(i in 0 until selection.size)
@@ -55,7 +54,6 @@ class WeekSelectionView(val viewModel: SelectionViewModel) : GlanceView{
         val boxColor = if (selected) GlanceTheme.colors.primary else GlanceTheme.colors.inversePrimary
         val textColor = if (selected) GlanceTheme.colors.onPrimary else GlanceTheme.colors.onPrimary
 
-        Log.e("Mata", selected.toString())
         Box(GlanceModifier
             .background(boxColor)
             .cornerRadius(8.dp)
@@ -63,9 +61,9 @@ class WeekSelectionView(val viewModel: SelectionViewModel) : GlanceView{
                 viewModel.Select(index)
             }
         ){
-            val formatter = SimpleDateFormat("dd MM", Locale.US)
+            val formatter = SimpleDateFormat("dd.MM", Locale.US)
             Text(
-                "${formatter.format(data.meta.dateRange .from)}-${
+                "${formatter.format(data.meta.dateRange.from)}-${
                     formatter.format(
                         data.meta.dateRange.to
                     )
@@ -93,7 +91,15 @@ class DaySelectionView(val viewModel: DaySelectionViewModel) : GlanceView {
     private fun DayInfo()
     {
         val day by viewModel.selectedDayOfWeek.collectAsState()
-        SurfaceText(day.toString())
+        val isToday by viewModel.isToday.collectAsState()
+
+        Row()
+        {
+            SurfaceText(day.toString())
+
+            if(isToday)
+                SurfaceText("(Is today)")
+        }
     }
 
     @Composable
@@ -120,9 +126,14 @@ class DaySelectionView(val viewModel: DaySelectionViewModel) : GlanceView {
                 viewModel.previousDay()
             }, R.drawable.outline_arrow_back_24)
 
+            Spacer(GlanceModifier.width(5.dp))
+
             IconButton(GlanceModifier.clickable{
                 viewModel.currentDayOfWeek()
             }, R.drawable.outline_api_24)
+
+
+            Spacer(GlanceModifier.width(5.dp))
 
             IconButton(GlanceModifier.clickable{
                 viewModel.nextDay()

@@ -1,11 +1,11 @@
 package com.example.rctschedule.Model
 
-import com.example.rctschedule.Services.ExcelTable
+import com.example.rctschedule.Data.ExcelTable
 import com.example.rctschedule.TransformExcelWeek
 
 data class ScheduleWeekData(
     val weekTable: TransformExcelWeek,
-    val meta: ExcelTableMetaData
+    val meta: ScheduleMeta
 )
 
 data class ScheduleGroupWeeksData(
@@ -22,12 +22,12 @@ data class GroupExcelWeeksDTO(
 
 data class GroupExcelTableDTO(
     val table: ExcelTable,
-    val meta: ExcelTableMetaData
+    val meta: ScheduleMeta
 ){
-    constructor() : this(ExcelTable(), ExcelTableMetaData()){}
+    constructor() : this(ExcelTable(), ScheduleMeta()){}
 }
 
-data class ExcelTableMetaData(
+data class ScheduleMeta(
     val dateRange: DateRange,
     val weekNumber: Int
 ){

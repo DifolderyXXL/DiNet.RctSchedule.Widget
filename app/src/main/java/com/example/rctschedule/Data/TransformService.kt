@@ -1,7 +1,6 @@
-package com.example.rctschedule.Services
+package com.example.rctschedule.Data
 
-import com.example.rctschedule.Model.ExcelTableMetaData
-import com.example.rctschedule.Model.GroupExcelTableDTO
+import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.Model.GroupExcelWeeksDTO
 import com.example.rctschedule.Model.ScheduleGroupWeeksData
 import com.example.rctschedule.Model.ScheduleWeekData
@@ -13,7 +12,7 @@ class TransformService @Inject constructor(private val config: TransformConfig){
     {
         return ScheduleWeekData(
             TransformWeek(table, 0),
-            ExcelTableMetaData()
+            ScheduleMeta()
         )
     }
 

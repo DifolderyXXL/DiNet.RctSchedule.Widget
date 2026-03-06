@@ -9,6 +9,7 @@ plugins {
 }
 
 
+
 android {
     namespace = "com.example.rctschedule"
     compileSdk {
@@ -81,9 +82,6 @@ dependencies {
     // For AppWidgets support
     implementation(libs.androidx.glance.appwidget)
 
-    implementation("androidx.activity:activity-compose:1.12.3")
-    implementation("androidx.compose.material:material:1.10.2")
-
     // For interop APIs with Material 3
     implementation (libs.androidx.glance.material3) {
         exclude(group = "com.google.guava", module = "listenablefuture")
@@ -94,17 +92,42 @@ dependencies {
         exclude(group = "com.google.guava", module = "listenablefuture")
     }
 
+    implementation("androidx.activity:activity-compose:1.12.3")
+    implementation("androidx.compose.material:material:1.10.2")
+
+
+
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 
 }
 
 dependencies {
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
     ksp("com.google.guava:guava:33.3.1-jre")
     // Core Apache POI library
     implementation("org.apache.poi:poi:5.5.0") // Check for the latest version
 
     // Add poi-ooxml for .xlsx file support (Office Open XML format)
     implementation("org.apache.poi:poi-ooxml:5.5.1") // Use the same version
+}
+
+
+dependencies{
+    val room_version = "2.8.4"
+
+    implementation("androidx.room:room-runtime:$room_version")
+
+    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
+    // See Add the KSP plugin to your project
+    ksp("androidx.room:room-compiler:$room_version")
+}
+
+dependencies{
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
 }

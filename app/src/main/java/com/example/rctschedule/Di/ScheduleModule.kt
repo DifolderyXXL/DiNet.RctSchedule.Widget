@@ -1,13 +1,11 @@
-package com.example.rctschedule.Modules
+package com.example.rctschedule.Di
 
 import com.example.rctschedule.Model.ScheduleUpdateConfig
-import com.example.rctschedule.Services.TransformConfig
+import com.example.rctschedule.Data.TransformConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -25,10 +23,3 @@ object ScheduleModule {
     }
 }
 
-@Module
-@InstallIn(SingletonComponent::class)
-object DispatcherModule{
-    @IoDispatcher
-    @Provides
-    fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
-}

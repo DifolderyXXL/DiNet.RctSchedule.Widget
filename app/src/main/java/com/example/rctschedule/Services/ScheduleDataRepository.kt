@@ -1,11 +1,16 @@
-package com.example.rctschedule.Model
+package com.example.rctschedule.Services
 
 import android.util.Log
-import androidx.compose.runtime.collectAsState
-import com.example.rctschedule.Services.TransformService
+import com.example.rctschedule.Data.TransformService
+import com.example.rctschedule.Model.CacheEntry
+import com.example.rctschedule.Model.ScheduleGroupWeeksData
+import com.example.rctschedule.Model.ScheduleUpdateConfig
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import javax.inject.Singleton
 
 sealed class Lce<out T> { // LCE: Loading, Content, Error
     object Loading : Lce<Nothing>()
@@ -15,11 +20,13 @@ sealed class Lce<out T> { // LCE: Loading, Content, Error
     fun contentOrNull(): T? = (this as? Content)?.data
 }
 
+@Singleton
 class ScheduleDataRepository @Inject constructor(
     private val config: ScheduleUpdateConfig,
     private val scheduleFetchService: ScheduleFetchService,
     private val scheduleCacheService: ScheduleCacheService,
-    private val transformService: TransformService
+    private val transformService: TransformService,
+    private val appSettingsRepository: ApplicationSettingsRepository
 ) {
     private val _scheduleState =
         MutableStateFlow<Lce<CacheEntry<ScheduleGroupWeeksData>>>(Lce.Loading)
@@ -27,8 +34,13 @@ class ScheduleDataRepository @Inject constructor(
     val scheduleState : StateFlow<Lce<CacheEntry<ScheduleGroupWeeksData>>>
         = _scheduleState
 
-    init {
-        val value = scheduleCacheService.load()
+    public suspend fun loadSynchronously() {
+        val st = System.currentTimeMillis()
+
+        val settings = appSettingsRepository.get()
+
+        val value = scheduleCacheService.load(settings.selectedGroup)
+
         if(value != null) {
             _scheduleState.value = Lce.Content(
                 CacheEntry(
@@ -38,21 +50,27 @@ class ScheduleDataRepository @Inject constructor(
                 )
             )
         }
+
+        Log.e("TIME", "TIME ${System.currentTimeMillis() - st}")
     }
 
     suspend fun requestUpdate(forceUpdate: Boolean = false) : Result<Boolean>
     {
         if(forceUpdate || shouldUpdate())
         {
-            val value = scheduleFetchService.fetchAsync(10-1)
+            val settings = appSettingsRepository.get()
+
+            val value = scheduleFetchService.fetchAsync(settings.selectedGroup)
             if(value.isSuccess)
             {
                 val rawTable = value.getOrThrow()
                 val resultValue = CacheEntry(
                     transformService.Transform(rawTable),
-                    System.currentTimeMillis())
+                    System.currentTimeMillis()
+                )
 
                 scheduleCacheService.save(CacheEntry(rawTable, resultValue.timestamp))
+
                 _scheduleState.value = Lce.Content(resultValue)
 
                 return Result.success(true)

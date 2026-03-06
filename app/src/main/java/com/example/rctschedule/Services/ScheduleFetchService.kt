@@ -1,11 +1,12 @@
-package com.example.rctschedule.Model
+package com.example.rctschedule.Services
 
-import com.example.rctschedule.CombineTableColumns
-import com.example.rctschedule.Modules.IoDispatcher
-import com.example.rctschedule.Services.ColumnArgument
-import com.example.rctschedule.Services.ExcelParser
-import com.example.rctschedule.Services.ExcelSheetWeeks
-import com.example.rctschedule.Services.ExcelTable
+import com.example.rctschedule.Di.IoDispatcher
+import com.example.rctschedule.Data.ColumnArgument
+import com.example.rctschedule.Data.ExcelParser
+import com.example.rctschedule.Data.ExcelSheetWeeks
+import com.example.rctschedule.Model.GroupExcelTableDTO
+import com.example.rctschedule.Model.GroupExcelWeeksDTO
+import com.example.rctschedule.Model.ScheduleMeta
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.apache.poi.ss.util.CellReference
@@ -53,7 +54,7 @@ class ScheduleFetchService @Inject constructor(
 
                 val rp = ExcelParser()
 
-                val weeks = rp.parseMultipleColumns(
+                val weeks = rp.parseWorkbook(
                     url.openStream(),
                     5,
                     100,
@@ -76,16 +77,14 @@ class ScheduleFetchService @Inject constructor(
 
     private fun getWeeksDto(excelWeeks: ExcelSheetWeeks, group: Int) : GroupExcelWeeksDTO
     {
-
-        val ar = ArrayList<GroupExcelTableDTO>()
-        for(i in 0 until excelWeeks.weeks.size)
-        {
-            val e = excelWeeks.weeks[i]
-            ar.add( GroupExcelTableDTO(
+        val mapped = excelWeeks.weeks.map{e->
+            GroupExcelTableDTO(
                 e.week,
-                ExcelTableMetaData(e.dateRange, e.weekNumber)))
+                ScheduleMeta(e.dateRange, e.weekNumber)
+            )
         }
-        return GroupExcelWeeksDTO(ar, group)
+
+        return GroupExcelWeeksDTO(mapped, group)
     }
 }
 

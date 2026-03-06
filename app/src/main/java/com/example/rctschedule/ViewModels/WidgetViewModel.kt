@@ -1,10 +1,15 @@
-package com.example.rctschedule.Model
+package com.example.rctschedule.ViewModels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.rctschedule.TransformExcelDayTable
-import com.example.rctschedule.ViewModels.DaySelectionViewModel
-import com.example.rctschedule.ViewModels.SelectionViewModel
+import com.example.rctschedule.Model.CacheEntry
+import com.example.rctschedule.Model.FetchState
+import com.example.rctschedule.Services.Lce
+import com.example.rctschedule.Services.ScheduleDataRepository
+import com.example.rctschedule.Model.ScheduleGroupWeeksData
+import com.example.rctschedule.Services.ApplicationSettings
+import com.example.rctschedule.Services.ApplicationSettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -12,59 +17,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.Date
 
-class WeekViewModel : ViewModel()
-{
-    val weekDataState = MutableStateFlow<ScheduleWeekData?>(null)
-
-    val dayState = MutableStateFlow<TransformExcelDayTable?>(null)
-
-    val tableMetaData = MutableStateFlow(ExcelTableMetaData())
-
-    val daySelectionViewModel = DaySelectionViewModel()
-
-
-    init {
-        daySelectionViewModel.selectFlow.onEach { state ->
-            if(state != null)
-                showDay(state)
-        }.launchIn(viewModelScope)
-
-        weekDataState.onEach { state ->
-            showTargetDay(daySelectionViewModel.selectedIndex.value)
-        }.launchIn(viewModelScope)
-    }
-
-    public fun SetWeekSchedule(weekData: ScheduleWeekData)
-    {
-        weekDataState.value = weekData
-        tableMetaData.value = weekData.meta
-
-        daySelectionViewModel.SetSelection(weekData.weekTable.days)
-    }
-
-    fun showDay(day: TransformExcelDayTable)
-    {
-        dayState.value = day
-    }
-
-    fun showTargetDay(dayIndex: Int)
-    {
-        val value = weekDataState.value
-        if(value != null)
-        {
-            if(value.weekTable.days.size <= dayIndex || dayIndex < 0) {
-                return
-            }
-
-            dayState.value = value.weekTable.days[dayIndex]
-        }
-    }
-
-}
-
 
 class WidgetViewModel(
-    private val scheduleRepository: ScheduleDataRepository)
+    val scheduleRepository: ScheduleDataRepository,
+    val appSettingsRepository: ApplicationSettingsRepository
+)
     : ViewModel()
 {
     private val _state = MutableStateFlow<Lce<CacheEntry<ScheduleGroupWeeksData>>>(Lce.Loading)
@@ -74,11 +31,16 @@ class WidgetViewModel(
 
     val lastUpdate = MutableStateFlow(Date(0))
     val group = MutableStateFlow<Int>(-1)
+    val displayingGroup = MutableStateFlow<Int>(-1)
 
     val weekViewModel = WeekViewModel()
     val selectionViewModel = SelectionViewModel()
 
     init {
+        appSettingsRepository.settingsFlow.onEach { state->
+            group.value = state.selectedGroup
+        }.launchIn(viewModelScope)
+
         scheduleRepository.scheduleState.onEach { state->
             _state.value = state
         }.launchIn(viewModelScope)
@@ -87,7 +49,7 @@ class WidgetViewModel(
             if(se is Lce.Content<CacheEntry<ScheduleGroupWeeksData>>)
             {
                 lastUpdate.value = Date(se.data.timestamp)
-                group.value = se.data.data.group
+                displayingGroup.value = se.data.data.group
 
                 selectionViewModel.SetSelection(se.data.data.weeks)
             }
@@ -112,6 +74,15 @@ class WidgetViewModel(
             _fetchingState.value = FetchState.Completed
         else
             _fetchingState.value = FetchState.Error
+    }
+
+    fun setGroup(groupIndex: Int)
+    {
+        appSettingsRepository.set(ApplicationSettings(groupIndex))
+
+        viewModelScope.launch {
+            scheduleRepository.loadSynchronously()
+        }
     }
 
     fun forceUpdateCommand()

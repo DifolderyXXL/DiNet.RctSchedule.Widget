@@ -1,7 +1,9 @@
 package com.example.rctschedule.Model
 
 import android.content.Context
-import com.example.rctschedule.Services.TransformService
+import com.example.rctschedule.Services.ApplicationSettingsRepository
+import com.example.rctschedule.Services.ScheduleDataRepository
+import com.example.rctschedule.ViewModels.WidgetViewModel
 import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
@@ -28,7 +30,9 @@ sealed interface FetchState
 
 @Singleton
 class WidgetModelRepository  @Inject constructor(
-    val repository: ScheduleDataRepository){
+    val repository: ScheduleDataRepository,
+    val appSettings: ApplicationSettingsRepository
+){
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface WidgetModelRepositoryEntrypoint {
@@ -47,7 +51,7 @@ class WidgetModelRepository  @Inject constructor(
 
     public fun loadOrCreate() : WidgetViewModel
     {
-        return WidgetViewModel(repository)
+        return WidgetViewModel(repository, appSettings)
     }
 
 }
