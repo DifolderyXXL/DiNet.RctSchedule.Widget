@@ -47,9 +47,9 @@ class ScheduleFetchService @Inject constructor(
     {
         var result: GroupExcelWeeksDTO? = null
 
-        try {
-            withContext(ioDispatcher)
-            {
+        return withContext(ioDispatcher)
+        {
+            try {
                 val url = URL(ExcelTableHelper.scheduleLink)
 
                 val rp = ExcelParser()
@@ -65,14 +65,14 @@ class ScheduleFetchService @Inject constructor(
                 )
 
                 result = getWeeksDto(weeks, group)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                return@withContext Result.failure(e)
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-
-            return Result.failure(e)
+            Result.success(result)
         }
-
-        return Result.success(result!!)
     }
 
     private fun getWeeksDto(excelWeeks: ExcelSheetWeeks, group: Int) : GroupExcelWeeksDTO

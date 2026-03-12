@@ -1,4 +1,4 @@
-package com.example.rctschedule.Services
+package com.example.rctschedule.Services.Repositories.States
 
 data class ApplicationSettings(
     val selectedGroup: Int

@@ -1,9 +1,11 @@
 package com.example.rctschedule.Model
 
 import android.content.Context
-import com.example.rctschedule.Services.ApplicationSettingsRepository
-import com.example.rctschedule.Services.ScheduleDataRepository
-import com.example.rctschedule.ViewModels.WidgetViewModel
+import com.example.rctschedule.Services.Repositories.ApplicationSettingsRepository
+import com.example.rctschedule.Services.Repositories.ScheduleDataRepository
+import com.example.rctschedule.Services.Repositories.SelectedDayRepository
+import com.example.rctschedule.UseCases.ChangeGroupUseCase
+import com.example.rctschedule.UseCases.ScheduleNavigationUseCase
 import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
@@ -28,30 +30,33 @@ sealed interface FetchState
     object Completed: FetchState
 }
 
+
+
 @Singleton
 class WidgetModelRepository  @Inject constructor(
-    val repository: ScheduleDataRepository,
-    val appSettings: ApplicationSettingsRepository
 ){
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface WidgetModelRepositoryEntrypoint {
         fun widgetModelRepository(): WidgetModelRepository
+        fun selectedDayRepository(): SelectedDayRepository
+        fun scheduleNavigationUseCase(): ScheduleNavigationUseCase
+        fun applicationSettingsRepository(): ApplicationSettingsRepository
+        fun getChangeGroupUseCase(): ChangeGroupUseCase
     }
 
     companion object {
-        fun get(applicationContext: Context): WidgetModelRepository {
-            var widgetModelRepositoryEntryoint: WidgetModelRepositoryEntrypoint = EntryPoints.get(
-                applicationContext,
-                WidgetModelRepositoryEntrypoint::class.java,
-            )
-            return widgetModelRepositoryEntryoint.widgetModelRepository()
-        }
-    }
+        @Volatile
+        private var cachedEntryPoint: WidgetModelRepositoryEntrypoint? = null
 
-    public fun loadOrCreate() : WidgetViewModel
-    {
-        return WidgetViewModel(repository, appSettings)
+        fun get(applicationContext: Context): WidgetModelRepositoryEntrypoint {
+            return cachedEntryPoint ?: synchronized(this){
+                cachedEntryPoint ?: EntryPoints.get(
+                    applicationContext,
+                    WidgetModelRepositoryEntrypoint::class.java,
+                ).also { cachedEntryPoint = it }
+            }
+        }
     }
 
 }

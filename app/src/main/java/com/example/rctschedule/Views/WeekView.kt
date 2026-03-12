@@ -1,11 +1,7 @@
 package com.example.rctschedule.Views
 
-import androidx.compose.animation.VectorConverter
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -24,13 +20,11 @@ import androidx.glance.layout.width
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.text.Text
 import androidx.glance.unit.ColorProvider
-import com.example.rctschedule.ViewModels.WeekViewModel
 import com.example.rctschedule.Data.ExcelCell
-import com.example.rctschedule.SurfaceText
 import com.example.rctschedule.TransformExcelColumn
 import com.example.rctschedule.TransformExcelRow
 import com.example.rctschedule.TransformExcelDayTable
-import kotlinx.coroutines.flow.first
+import com.example.rctschedule.ViewModels.ScheduleUiState
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -39,7 +33,7 @@ interface GlanceView{
     fun ComposableDraw(modifier: GlanceModifier)
 }
 
-class WeekView(val viewModel: WeekViewModel) : GlanceView {
+class WeekView(val state: ScheduleUiState) : GlanceView {
 
     @Composable
     override fun ComposableDraw(modifier: GlanceModifier) {
@@ -54,12 +48,9 @@ class WeekView(val viewModel: WeekViewModel) : GlanceView {
     @Composable
     private fun Body()
     {
-        val state by viewModel.dayState.collectAsState()
-
-        if(state != null) {
+        if(state.anyContent){
             Column {
-                DaySelectionView(viewModel.daySelectionViewModel).ComposableDraw(GlanceModifier)
-                TableView(state!!)
+                TableView(state.day)
                 Spacer(modifier = GlanceModifier.height(20.dp))
             }
         }
@@ -71,19 +62,18 @@ class WeekView(val viewModel: WeekViewModel) : GlanceView {
     @Composable
     private fun Header()
     {
-        val metaState by viewModel.tableMetaData.collectAsState()
-        Column(GlanceModifier.fillMaxWidth())
+        val metaState = state.tableMeta
+        Row(GlanceModifier.fillMaxWidth())
         {
             val formatter = SimpleDateFormat("dd MMM", Locale.US)
 
-            SurfaceText("Week: ${metaState.weekNumber}")
             SurfaceText(
-                "Date: ${formatter.format(metaState.dateRange.from)}-${
+                "${formatter.format(metaState.dateRange.from)}-${
                     formatter.format(
                         metaState.dateRange.to
                     )
-                }"
-            )
+                }(${metaState.weekNumber}-week) (Group ${state.group+1})")
+
         }
     }
 

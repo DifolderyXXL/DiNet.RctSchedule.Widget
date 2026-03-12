@@ -6,10 +6,12 @@ import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
+import androidx.work.workDataOf
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -25,7 +27,7 @@ class WorkerScheduler @Inject constructor(
         const val UPDATE_WORKER_FLEX_TIME_INTERVAL_MINUTES = 30L
     }
 
-    private val workManager = WorkManager.getInstance(context)
+    private val workManager by lazy { WorkManager.getInstance(context) }
 
     fun scheduleWidgetUpdate() {
         val constraints = Constraints.Builder()
@@ -55,6 +57,7 @@ class WorkerScheduler @Inject constructor(
         Log.d("WorkerScheduler", "Worker scheduled/updated")
     }
 
+
     fun observeWorkerStatus(callback: (WorkInfo?) -> Unit) {
         workManager.getWorkInfosForUniqueWorkLiveData(UPDATE_WORKER_NAME)
             .observeForever { workInfos ->
@@ -70,7 +73,7 @@ class WorkerScheduler @Inject constructor(
 
         workManager.enqueueUniqueWork(
             "force_update_worker",
-            androidx.work.ExistingWorkPolicy.APPEND_OR_REPLACE,
+            androidx.work.ExistingWorkPolicy.REPLACE,
             oneTimeRequest
         )
 
@@ -79,5 +82,23 @@ class WorkerScheduler @Inject constructor(
 
     fun cancelWorker() {
         workManager.cancelUniqueWork(UPDATE_WORKER_NAME)
+    }
+
+
+    fun updateGroupOneTime(groupId: Int)
+    {
+        val workRequest = OneTimeWorkRequestBuilder<UpdateScheduleGroupWorker>()
+            .setInputData(
+                workDataOf(
+                    UpdateScheduleGroupWorker.GROUP_ID_KEY to groupId
+                )
+            )
+            .build()
+
+        workManager.enqueueUniqueWork(
+            "update_group_one_time",
+            androidx.work.ExistingWorkPolicy.KEEP,
+            workRequest
+        )
     }
 }

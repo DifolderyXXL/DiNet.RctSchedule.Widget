@@ -1,32 +1,47 @@
 [versions]
-activityCompose = "1.12.3"
+androidxActivity = "1.9.3"
+
 agp = "8.13.2"
+concurrentFutures = "1.2.0"
+concurrentFuturesKtx = "1.2.0"
 daggerCompiler = "2.55"
-glance = "1.2.0-rc01"
+glance = "1.1.1"
+gson = "2.11.0"
 guava = "33.5.0-android"
 hiltAndroid = "2.55"
 kotlin = "2.1.0"
-coreKtx = "1.17.0"
+coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
-appcompat = "1.7.1"
-material = "1.13.0"
+appcompat = "1.7.0"
+material = "1.12.0"
 glanceAppwidget = "1.1.1"
-material3 = "1.4.0"
+material3 = "1.3.0"
 compiler = "3.2.0-alpha11"
 
 ksp = "2.1.0-1.0.29"
-workRuntimeKtx = "2.11.1"
+materialVersion = "1.7.5"
+workRuntimeKtx = "2.10.0"
 hiltCommon = "1.3.0"
 hiltWork = "1.3.0"
+junitKtx = "1.3.0"
 
 [libraries]
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidxActivity" }
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidxActivity" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
+
+
+androidx-concurrent-futures-ktx = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "concurrentFuturesKtx" }
+androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures", version.ref = "concurrentFutures" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-glance = { module = "androidx.glance:glance", version.ref = "glance" }
 androidx-glance-material = { module = "androidx.glance:glance-material", version.ref = "glanceAppwidget" }
 androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glanceAppwidget" }
+androidx-material = { module = "androidx.compose.material:material", version.ref = "materialVersion" }
 dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "daggerCompiler" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "daggerCompiler" }
@@ -43,6 +58,7 @@ androidx-hilt-common = { group = "androidx.hilt", name = "hilt-common", version.
 androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
 
 androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltWork" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

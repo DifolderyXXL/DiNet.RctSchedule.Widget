@@ -125,8 +125,6 @@ class ExcelParser {
     }
 
     fun parseTable(sheet: XSSFSheet, startRow: Int, startCol: Int, rowCount: Int, colCount: Int): ExcelTable {
-
-
         val mergedRegions = sheet.mergedRegions
 
         val tableData = mutableListOf<List<ExcelCell>>()
@@ -138,6 +136,11 @@ class ExcelParser {
             for (c in startCol until min(startCol+colCount, currentRow.lastCellNum.toInt())) {
                 try{
                     val cell = currentRow.getCell(c)
+                    if(cell == null)
+                    {
+                        rowData.add(ExcelCell("", 0, 0, true, null))
+                        continue
+                    }
 
                     val mergedRegion = findMergedRegion(mergedRegions, r, c)
 
