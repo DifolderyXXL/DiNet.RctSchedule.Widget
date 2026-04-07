@@ -7,6 +7,7 @@ import androidx.glance.appwidget.updateAll
 import androidx.hilt.work.HiltWorkerFactory
 
 import androidx.work.Configuration
+import com.example.rctschedule.Workers.WorkerScheduler
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -27,6 +28,11 @@ class WidgetApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+
+        val s = scheduler.getWidgetUpdateWorkerStatus()
+        val info = s?.joinToString { x -> x.state.name }
+
+        Log.e("app.onCreate", info ?: "null")
 
         scheduler.scheduleWidgetUpdate()
 

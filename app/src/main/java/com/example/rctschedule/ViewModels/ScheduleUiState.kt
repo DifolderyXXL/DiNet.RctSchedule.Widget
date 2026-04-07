@@ -4,17 +4,27 @@ import com.example.rctschedule.Model.CacheEntry
 import com.example.rctschedule.Model.ScheduleGroupWeeksData
 import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.TransformExcelDayTable
+import com.example.rctschedule.UseCases.WidgetDisplayData
 import java.time.DayOfWeek
 
 data class ScheduleUiState(
-    val anyContent: Boolean = false,
-    val isLoading: Boolean = false,
+    val selectWeek: WeekSelectState = WeekSelectState(),
+    val selectDay: DaySelectState = DaySelectState(),
+    val content: ContentState? = null
+)
 
-    val currentDayName: DayOfWeek = DayOfWeek.MONDAY,
-    val tableMeta: ScheduleMeta = ScheduleMeta(),
-    val isDayOff: Boolean = false,
-    val group: Int = -1,
-    val day: TransformExcelDayTable = TransformExcelDayTable(emptyList()),
+data class ContentState(
+    val group: Int,
+    val displayData: WidgetDisplayData?,
+    val timestamp: Long = 0,
+)
 
-    val cacheInstance: CacheEntry<ScheduleGroupWeeksData>? = null
+data class WeekSelectState(
+    val weeksMetas: List<ScheduleMeta> = emptyList(),
+    val selectedWeek: ScheduleMeta = ScheduleMeta(),
+)
+
+data class DaySelectState(
+    val days: List<DayOfWeek> = emptyList(),
+    val selectedDay: DayOfWeek = DayOfWeek.MONDAY,
 )

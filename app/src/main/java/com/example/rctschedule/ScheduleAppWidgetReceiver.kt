@@ -5,11 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.glance.appwidget.*
-import com.example.rctschedule.Model.WidgetModelRepository
 import com.example.rctschedule.Views.MyAppWidget
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
 
 class ScheduleAppWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = MyAppWidget()

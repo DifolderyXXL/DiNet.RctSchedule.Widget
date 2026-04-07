@@ -15,6 +15,7 @@ import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.ViewModels.WeekSelectionState
 import com.example.rctschedule.Views.Callbacks.WeekSelectActionCallback
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class WeekSelectionView(val weekSelectionState: WeekSelectionState) : GlanceView{
@@ -36,7 +37,7 @@ class WeekSelectionView(val weekSelectionState: WeekSelectionState) : GlanceView
 
         Box {
 
-            val formatter = SimpleDateFormat("dd.MM", Locale.US)
+            val formatter = DateTimeFormatter.ofPattern("dd.MM")
 
             ButtonWithoutMarker(
                 boxColor,

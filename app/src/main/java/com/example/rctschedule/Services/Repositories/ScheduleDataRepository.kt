@@ -1,11 +1,9 @@
 package com.example.rctschedule.Services.Repositories
 
 import android.util.Log
-import androidx.work.WorkInfo
 import com.example.rctschedule.Data.TransformService
 import com.example.rctschedule.Model.CacheEntry
 import com.example.rctschedule.Model.ScheduleGroupWeeksData
-import com.example.rctschedule.Model.ScheduleUpdateConfig
 import com.example.rctschedule.Services.ScheduleCacheService
 import com.example.rctschedule.Services.ScheduleFetchService
 import kotlinx.coroutines.Dispatchers
@@ -60,7 +58,7 @@ class ScheduleDataRepository @Inject constructor(
         }
     }
 
-    suspend fun getCurrentSchedule(): CacheEntry<ScheduleGroupWeeksData>? {
+    suspend fun getCachedSchedule(): CacheEntry<ScheduleGroupWeeksData>? {
         _cachedState.value?.let { return it }
 
         return try {

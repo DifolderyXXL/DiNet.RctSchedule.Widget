@@ -1,6 +1,7 @@
 package com.example.rctschedule.Views
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,14 +20,20 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.TextStyle
+import com.example.rctschedule.Model.WidgetEntry
+import com.example.rctschedule.Model.WidgetEntryPoint
 import com.example.rctschedule.R
 import com.example.rctschedule.Services.Repositories.*
+import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
 import com.example.rctschedule.ViewModels.ScheduleUiState
 import com.example.rctschedule.Views.Callbacks.*
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -41,83 +48,64 @@ class MyAppWidget : GlanceAppWidget() {
         // In this method, load data needed to render the AppWidget.
         // Use `withContext` to switch to another thread for long running
         // operations.
-/*
-        val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 
-*/
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context,
-            WidgetEntryPoint::class.java
-        )
+        val entryPoint = WidgetEntry.get(context)
 
-        val flow = entryPoint.getScheduleWidgetLoader()
-            .getScheduleFlow()
-        //flow.first()
+        val loader = entryPoint.getScheduleWidgetLoader()
 
-        coroutineScope {
-            launch { entryPoint.getScheduleDataRepository().loadSchedule(false) }
+        val initialState = withContext(Dispatchers.IO) {
+            loader.getCurrentState()
+        }
 
-            provideContent {
-                GlanceTheme()
-                {
-                    /*Image(
-                    colorFilter = ColorFilter.tint(GlanceTheme.colors.secondary),
-                    provider = ImageProvider(R.drawable.baseline_refresh_24),
-                    contentDescription = null,
-                    modifier = GlanceModifier.cornerRadius(5.dp)
-                        .clickable(actionRunCallback<EmpAct>(
-                            parameters = actionParametersOf(GroupSelectActionCallback.SELECT_GROUP_BUTTON_KEY to 3)
-                        )))*/
+        val flow = loader.getScheduleFlow()
 
-                    Column(
-                        GlanceModifier
-                            .fillMaxHeight()
-                            .background(GlanceTheme.colors.widgetBackground)
-                            .appWidgetBackground()
-                            .cornerRadius(10.dp)
-                    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            entryPoint.getScheduleDataRepository().loadSchedule(false)
+        }
 
-                        Content(flow, entryPoint)
-                    }
+        provideContent {
+            GlanceTheme()
+            {
+                val uiState by flow.collectAsState(initial = initialState)
+
+                Column(
+                    GlanceModifier
+                        .fillMaxHeight()
+                        .background(GlanceTheme.colors.widgetBackground)
+                        .appWidgetBackground()
+                        .cornerRadius(10.dp)
+                ) {
+
+                    Content(uiState, entryPoint)
                 }
             }
         }
+
     }
 
     @Composable
     private fun LastUpdateTime(lastUpdate: Date)
     {
-        val dt = remember {
-            val dtFormatter = DateTimeFormatter.ofLocalizedDateTime(
-                FormatStyle.SHORT, FormatStyle.MEDIUM)
-            dtFormatter.format(
-                lastUpdate.toInstant()
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDateTime()
-            )
-        }
-
+        val dtFormatter = DateTimeFormatter.ofLocalizedDateTime(
+            FormatStyle.SHORT, FormatStyle.MEDIUM)
+        val dt = dtFormatter.format(
+            lastUpdate.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+        )
         SurfaceText("Last update at $dt")
-
     }
 
     @Composable
-    private fun UpdateStateHeader(rp: ScheduleDataRepository)
+    private fun UpdateStateHeader(state: Lce<*>)
     {
         Row(GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically){
 
-            val state by rp.scheduleState.collectAsState()
-            when(state){
-                is Lce.Content ->{
-                    SurfaceText("Content")
-                }
-                is Lce.Loading ->{
-                    SurfaceText("Loading")
-                }
-                is Lce.Error ->{
-                    SurfaceText("Error")
-                }
+            when(state) {
+                is Lce.Content -> SurfaceText("Content")
+                is Lce.Loading -> SurfaceText("Loading")
+                is Lce.Error -> SurfaceText("Error")
             }
             Spacer(GlanceModifier.defaultWeight())
             Image(
@@ -132,53 +120,47 @@ class MyAppWidget : GlanceAppWidget() {
 
 
     @Composable
-    private fun Content(uiState: Flow<ScheduleUiState>, ep: WidgetEntryPoint)
+    private fun Content(uiState: ScheduleUiState, ep: WidgetEntryPoint)
     {
+        val state by ep.getScheduleDataRepository().scheduleState.collectAsState()
+        val appSettings by ep.getAppSettingsRepository().valueFlow.collectAsState(
+            ApplicationSettings.Default)
+
         Box(modifier = GlanceModifier.fillMaxSize().padding(4.dp))
         {
             Column(GlanceModifier
                 .fillMaxSize()
                 .padding(top = 5.dp)) {
 
-                val appSettings by ep.getAppSettingsRepository().valueFlow.collectAsState()
-
                 GroupHeader(appSettings.selectedGroup, ep.getGroupToggleRepository())
+                UpdateStateHeader(state)
 
-                val uiState by uiState.collectAsState(ScheduleUiState(isLoading = true))
+                val day = ep.getDaySelectionPresenter()
+                    .present(uiState.selectWeek, uiState.selectDay)
+                DaySelectionView(day).ComposableDraw(GlanceModifier)
 
-                UpdateStateHeader(ep.getScheduleDataRepository())
+                when {
+                    uiState.content != null -> {
+                        LastUpdateTime(Date(uiState.content.timestamp))
 
-                when{
-                    uiState.anyContent && uiState.cacheInstance != null ->{
-                        LastUpdateTime(Date(uiState.cacheInstance!!.timestamp))
+                        WeekView(uiState.content)
+                            .ComposableDraw(GlanceModifier.defaultWeight())
 
-                        val day = remember(uiState.cacheInstance, uiState.currentDayName, uiState.tableMeta.weekNumber) {
-                            ep.getDaySelectionPresenter()
-                                .present(uiState.cacheInstance!!.data, uiState.currentDayName)
-                        }
-                        val week = remember(uiState.cacheInstance, uiState.tableMeta) {
-                            ep.getWeekSelectionPresenter()
-                                .present(uiState.cacheInstance!!.data, uiState.tableMeta.weekNumber)
-                        }
-                        DaySelectionView(day).ComposableDraw(GlanceModifier)
-
-                        WeekView(uiState).ComposableDraw(
-                            GlanceModifier.defaultWeight())
-
-                        WeekSelectionView(week).ComposableDraw(
-                            GlanceModifier.height(70.dp))
-                    }
-
-                    uiState.isLoading ->{
-                        SurfaceText("Loading")
-                    }
-
-                    uiState.isDayOff ->{
-                        SurfaceText("Day off")
+                        val week = ep.getWeekSelectionPresenter().present(
+                            uiState,
+                            uiState.selectWeek.selectedWeek.weekNumber
+                        )
+                        WeekSelectionView(week).ComposableDraw(GlanceModifier.height(70.dp))
                     }
 
                     else -> {
-                        SurfaceText("Error")
+                        val scheduleState by ep.getScheduleDataRepository()
+                            .scheduleState.collectAsState()
+                        when (scheduleState) {
+                            is Lce.Loading -> SurfaceText("Loading...")
+                            is Lce.Error -> SurfaceText("Error loading schedule")
+                            else -> SurfaceText("Day off")
+                        }
                     }
                 }
 
@@ -189,7 +171,7 @@ class MyAppWidget : GlanceAppWidget() {
     @Composable
     fun GroupHeader(group: Int, toggle: GroupToggleRepository) {
 
-        val isExpanded by toggle.valueFlow.collectAsState()
+        val isExpanded by toggle.valueFlow.collectAsState(false)
 
         Column(){
             SurfaceText("Group ${group + 1}",

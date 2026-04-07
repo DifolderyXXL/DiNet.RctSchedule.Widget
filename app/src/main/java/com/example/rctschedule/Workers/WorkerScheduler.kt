@@ -1,10 +1,11 @@
-package com.example.rctschedule
+package com.example.rctschedule.Workers
 
 import android.content.Context
 import android.util.Log
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
@@ -27,11 +28,17 @@ class WorkerScheduler @Inject constructor(
         const val UPDATE_WORKER_FLEX_TIME_INTERVAL_MINUTES = 30L
     }
 
-    private val workManager by lazy { WorkManager.getInstance(context) }
+    private val workManager by lazy { WorkManager.Companion.getInstance(context) }
+
+    fun getWidgetUpdateWorkerStatus() : List<WorkInfo>
+    {
+        return workManager.getWorkInfosForUniqueWork(UPDATE_WORKER_NAME)
+            .get()
+    }
 
     fun scheduleWidgetUpdate() {
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_ROAMING)
+            .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val worker = PeriodicWorkRequestBuilder<UpdateScheduleWorker>(
@@ -43,14 +50,14 @@ class WorkerScheduler @Inject constructor(
             .setConstraints(constraints)
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
-                WorkRequest.MIN_BACKOFF_MILLIS,
+                WorkRequest.Companion.MIN_BACKOFF_MILLIS,
                 TimeUnit.MILLISECONDS
             )
             .build()
 
         workManager.enqueueUniquePeriodicWork(
             UPDATE_WORKER_NAME,
-            ExistingPeriodicWorkPolicy.KEEP ,
+            ExistingPeriodicWorkPolicy.UPDATE,
             worker
         )
 
@@ -66,14 +73,18 @@ class WorkerScheduler @Inject constructor(
     }
 
     fun forceRunNow() {
-        val oneTimeRequest = androidx.work.OneTimeWorkRequestBuilder<UpdateScheduleWorker>()
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.NOT_ROAMING)
+            .build()
+
+        val oneTimeRequest = OneTimeWorkRequestBuilder<UpdateScheduleWorker>()
             .addTag("force_run")
-            .setInitialDelay(1, TimeUnit.SECONDS)
+            .setConstraints(constraints)
             .build()
 
         workManager.enqueueUniqueWork(
             "force_update_worker",
-            androidx.work.ExistingWorkPolicy.REPLACE,
+            ExistingWorkPolicy.REPLACE,
             oneTimeRequest
         )
 
@@ -90,14 +101,14 @@ class WorkerScheduler @Inject constructor(
         val workRequest = OneTimeWorkRequestBuilder<UpdateScheduleGroupWorker>()
             .setInputData(
                 workDataOf(
-                    UpdateScheduleGroupWorker.GROUP_ID_KEY to groupId
+                    UpdateScheduleGroupWorker.Companion.GROUP_ID_KEY to groupId
                 )
             )
             .build()
 
         workManager.enqueueUniqueWork(
             "update_group_one_time",
-            androidx.work.ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.KEEP,
             workRequest
         )
     }

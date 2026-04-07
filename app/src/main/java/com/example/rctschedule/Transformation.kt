@@ -130,7 +130,7 @@ public fun TransformWeek(table: ExcelTable, subjectCountingColumn: Int) : Transf
 }
 
 data class TransformExcelDayTable(
-    val rows: List<TransformExcelRow>
+    val rows: List<TransformExcelRow> = emptyList()
 )
 
 data class TransformExcelColumn(

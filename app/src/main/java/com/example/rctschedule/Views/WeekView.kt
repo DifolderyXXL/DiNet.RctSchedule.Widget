@@ -21,11 +21,15 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.text.Text
 import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Data.ExcelCell
+import com.example.rctschedule.Model.ScheduleDayData
+import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.TransformExcelColumn
 import com.example.rctschedule.TransformExcelRow
 import com.example.rctschedule.TransformExcelDayTable
+import com.example.rctschedule.ViewModels.ContentState
 import com.example.rctschedule.ViewModels.ScheduleUiState
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 interface GlanceView{
@@ -33,46 +37,35 @@ interface GlanceView{
     fun ComposableDraw(modifier: GlanceModifier)
 }
 
-class WeekView(val state: ScheduleUiState) : GlanceView {
+class WeekView(val state: ContentState) : GlanceView {
 
     @Composable
     override fun ComposableDraw(modifier: GlanceModifier) {
 
         Column(modifier)
         {
-            Header()
-            Body()
-        }
-    }
-
-    @Composable
-    private fun Body()
-    {
-        if(state.anyContent){
-            Column {
-                TableView(state.day)
-                Spacer(modifier = GlanceModifier.height(20.dp))
+            if(state.displayData != null) {
+                Header(state.displayData.week.meta, state.group)
+                TableView(state.displayData.day.weekTable)
             }
-        }
-        else{
-            Text("<NULL>")
+
+            Spacer(modifier = GlanceModifier.height(20.dp))
         }
     }
 
     @Composable
-    private fun Header()
+    private fun Header(metaState: ScheduleMeta, group: Int)
     {
-        val metaState = state.tableMeta
         Row(GlanceModifier.fillMaxWidth())
         {
-            val formatter = SimpleDateFormat("dd MMM", Locale.US)
+            val formatter = DateTimeFormatter.ofPattern("dd MMM")
 
             SurfaceText(
                 "${formatter.format(metaState.dateRange.from)}-${
                     formatter.format(
                         metaState.dateRange.to
                     )
-                }(${metaState.weekNumber}-week) (Group ${state.group+1})")
+                }(${metaState.weekNumber}-week) (Group ${group+1})")
 
         }
     }
@@ -139,6 +132,7 @@ class WeekView(val state: ScheduleUiState) : GlanceView {
             .background(background)
         )
         {
+            //SurfaceText(text = "${c.isMerged}, ${c.colSpan}, ${c.rowSpan}")
             SurfaceText(text = c.value)
         }
     }

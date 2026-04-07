@@ -9,21 +9,35 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.example.rctschedule.Views.MyAppWidget
+import com.example.rctschedule.Workers.WorkerScheduler
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class TestActivity : ComponentActivity() {
+    @Inject lateinit var workerScheduler: WorkerScheduler
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val tt = this
-       setContent {
+        setContent {
            MaterialTheme {
                Surface(modifier= Modifier.fillMaxSize()){
 
@@ -46,7 +60,41 @@ class TestActivity : ComponentActivity() {
                        }){
                            Text("Update widgets")
                        }
+
+
+                       var text by remember{ mutableStateOf("Null") }
+
+                       Button(onClick = {
+                           val s = workerScheduler.getWidgetUpdateWorkerStatus()
+                           val info = s.joinToString { x -> x.toString() }
+                           text = info;
+                       }){
+                           Text("Get Full Info")
+                       }
+
+                       Button(onClick = {
+                           val s = workerScheduler.getWidgetUpdateWorkerStatus()
+                           val info = s.joinToString { x ->
+                               val instant = Instant.ofEpochMilli(x.nextScheduleTimeMillis)
+
+                               val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+
+                               val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+                               x.stopReason
+
+                               dateTime.format(formatter) + '\n'
+                           }
+                           text = info;
+                       }){
+                           Text("Get Next Schedule Info")
+                       }
+                       Text(text)
+
+
                    }
+
+
 
                }
            }

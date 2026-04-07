@@ -6,9 +6,8 @@ import javax.inject.Singleton
 
 @Singleton
 class WeekSelectionPresenter @Inject constructor(){
-    fun present(schedule: ScheduleGroupWeeksData?, currentWeek: Int): WeekSelectionState {
-        val weeks = schedule?.weeks?.map{ it.meta }
-            ?: emptyList()
+    fun present(schedule: ScheduleUiState, currentWeek: Int): WeekSelectionState {
+        val weeks = schedule.selectWeek.weeksMetas
 
         return WeekSelectionState(
             availableWeeksIds = weeks,

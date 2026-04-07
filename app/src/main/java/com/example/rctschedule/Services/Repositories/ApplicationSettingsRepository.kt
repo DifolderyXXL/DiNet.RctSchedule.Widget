@@ -12,9 +12,8 @@ class ApplicationSettingsRepository @Inject constructor(
 ) : PrefsRepository<ApplicationSettings>(
     context,
     SETTINGS_VALUE_NAME,
-    ApplicationSettings::class.java,
-    ApplicationSettings.Default,
-    true){
+    createJsonSerializer(ApplicationSettings.Default)
+){
 
     companion object{
         const val SETTINGS_VALUE_NAME = "application_settings"

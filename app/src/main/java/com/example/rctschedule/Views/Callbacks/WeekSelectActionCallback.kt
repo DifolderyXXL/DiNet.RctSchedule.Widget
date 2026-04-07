@@ -1,12 +1,13 @@
 package com.example.rctschedule.Views.Callbacks
 
 import android.content.Context
+import android.util.Log
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
-import com.example.rctschedule.Model.WidgetModelRepository
-import com.example.rctschedule.Views.WidgetEntryPoint
-import dagger.hilt.android.EntryPointAccessors
+import com.example.rctschedule.Model.WidgetEntry
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class WeekSelectActionCallback : ActionCallback {
     companion object{
@@ -22,12 +23,12 @@ class WeekSelectActionCallback : ActionCallback {
             ?: return
 
 
-        val vm = WidgetModelRepository.get(context.applicationContext)
-            .scheduleNavigationUseCase()
+        val ep = WidgetEntry.get(context.applicationContext)
 
-        vm.selectWeek(parameter)
+        withContext(Dispatchers.IO) {
+            ep.getSelectDisplayUseCase()(selectedWeekNumber = parameter)
+        }
 
-        val ep = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
         updateAndCloseMenu(context, ep.getGroupToggleRepository())
     }
 }

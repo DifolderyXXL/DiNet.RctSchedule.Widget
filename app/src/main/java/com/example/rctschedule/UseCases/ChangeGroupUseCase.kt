@@ -3,7 +3,7 @@ package com.example.rctschedule.UseCases
 import com.example.rctschedule.Services.Repositories.ApplicationSettingsRepository
 import com.example.rctschedule.Services.Repositories.ScheduleDataRepository
 import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
-import com.example.rctschedule.WorkerScheduler
+import com.example.rctschedule.Workers.WorkerScheduler
 import javax.inject.Inject
 import javax.inject.Singleton
 

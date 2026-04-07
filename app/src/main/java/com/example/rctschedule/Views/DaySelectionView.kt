@@ -80,7 +80,7 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
             horizontalAlignment = Alignment.Horizontal.CenterHorizontally
         )
         {
-            val currentDayOfWeek = LocalDate.now().dayOfWeek
+            val currentDayOfWeek = state.currentDate.dayOfWeek
             state.validDays.forEach { item ->
                 val color = when (item) {
                     //currentDayOfWeek -> GlanceTheme.colors.primary
@@ -103,14 +103,14 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
                         item.getDisplayName(TextStyle.SHORT, Locale.ROOT),
                         currentDayOfWeek == item,
                         GlanceModifier
+                            .fillMaxWidth()
+                            .cornerRadius(10.dp)
                             .clickable( actionRunCallback<DaySelectActionCallback>(
                                 actionParametersOf(
                                     DaySelectActionCallback.SELECT_DAY_BUTTON_KEY to SelectDayButtonType.ByIndex,
                                     DaySelectActionCallback.DAY_KEY to item
                                 )))
-                            .cornerRadius(10.dp)
-                            .fillMaxWidth()
-                        )
+                    )
                 }
             }
         }
@@ -125,8 +125,7 @@ public fun ButtonWithMarker(background: ColorProvider,
                             modifier: GlanceModifier)
 {
     Column(modifier
-        .background(ImageProvider(R.drawable.border_only),
-            colorFilter = ColorFilter.tint(background))
+        .background(background)
         .padding(bottom = 8.dp)
     ){
 
@@ -163,9 +162,9 @@ public fun ButtonWithMarker(background: ColorProvider,
 
 @Composable
 public fun ButtonWithoutMarker(background: ColorProvider,
-                            foreground: ColorProvider,
-                            text: String,
-                            modifier: GlanceModifier)
+                               foreground: ColorProvider,
+                               text: String,
+                               modifier: GlanceModifier)
 {
     Column(modifier
         .background(ImageProvider(R.drawable.border_only),

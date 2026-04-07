@@ -1,5 +1,6 @@
 package com.example.rctschedule.Data
 
+import android.util.Log
 import com.example.rctschedule.CombineTableColumns
 import com.example.rctschedule.Model.DateRange
 import org.apache.poi.ss.usermodel.*
@@ -8,6 +9,9 @@ import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.InputStream
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.MonthDay
+import java.time.format.DateTimeFormatter
 import kotlin.math.min
 import kotlin.text.get
 
@@ -106,11 +110,17 @@ class ExcelParser {
         if(fromDate == null || toDate == null || weekNumber == null)
             throw Exception("Can't parse sheet name")
 
-        val formatter = SimpleDateFormat("dd.MM")
+        val formatter = DateTimeFormatter.ofPattern("dd.MM")
+
+        val monthDayFrom = MonthDay.parse(fromDate.value, formatter)
+        val fromLocal = monthDayFrom.atYear(LocalDate.now().year)
+
+        val monthDayTo = MonthDay.parse(toDate.value, formatter)
+        val toLocal = monthDayTo.atYear(LocalDate.now().year)
 
         val dateRange = DateRange(
-            formatter.parse(fromDate.value)!!,
-            formatter.parse(toDate.value)!!)
+            fromLocal,
+            toLocal)
         val weekNumberInt = weekNumber.value.toInt()
 
         val result = ArrayList<ExcelTable>()
@@ -138,7 +148,7 @@ class ExcelParser {
                     val cell = currentRow.getCell(c)
                     if(cell == null)
                     {
-                        rowData.add(ExcelCell("", 0, 0, true, null))
+                        rowData.add(ExcelCell("", 1, 1, true, null))
                         continue
                     }
 

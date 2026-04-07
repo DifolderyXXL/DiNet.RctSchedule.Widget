@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "rctschedule"
 include(":app")
- 
+include(":shared")
