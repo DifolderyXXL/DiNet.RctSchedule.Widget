@@ -20,6 +20,7 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Model.WidgetEntry
 import com.example.rctschedule.Model.WidgetEntryPoint
 import com.example.rctschedule.R
@@ -123,8 +124,9 @@ class MyAppWidget : GlanceAppWidget() {
     private fun Content(uiState: ScheduleUiState, ep: WidgetEntryPoint)
     {
         val state by ep.getScheduleDataRepository().scheduleState.collectAsState()
-        val appSettings by ep.getAppSettingsRepository().valueFlow.collectAsState(
-            ApplicationSettings.Default)
+
+        val contextProvider = ep.getSheetRegularContextProvider()
+        val context = contextProvider.get(uiState.appSettings.selectedCourse)
 
         Box(modifier = GlanceModifier.fillMaxSize().padding(4.dp))
         {
@@ -132,7 +134,11 @@ class MyAppWidget : GlanceAppWidget() {
                 .fillMaxSize()
                 .padding(top = 5.dp)) {
 
-                GroupHeader(appSettings.selectedGroup, ep.getGroupToggleRepository())
+                GroupHeader(uiState.appSettings.selectedCourse,
+                    contextProvider.getAllCourses(),
+                    uiState.appSettings.selectedGroup,
+                    (0..<context.getGroupCount()).toList(),
+                    ep.getGroupToggleRepository())
                 UpdateStateHeader(state)
 
                 val day = ep.getDaySelectionPresenter()
@@ -150,7 +156,8 @@ class MyAppWidget : GlanceAppWidget() {
                             uiState,
                             uiState.selectWeek.selectedWeek.weekNumber
                         )
-                        WeekSelectionView(week).ComposableDraw(GlanceModifier.height(70.dp))
+                        WeekSelectionView(week)
+                            .ComposableDraw(GlanceModifier.height(70.dp))
                     }
 
                     else -> {
@@ -169,21 +176,108 @@ class MyAppWidget : GlanceAppWidget() {
     }
 
     @Composable
-    fun GroupHeader(group: Int, toggle: GroupToggleRepository) {
-
-        val isExpanded by toggle.valueFlow.collectAsState(false)
+    fun GroupHeader(course: Int, validCourses: List<Int>, group: Int, validGroups: List<Int>, toggle: GroupToggleRepository) {
+        val state by toggle.valueFlow.collectAsState(ToggleData.Default)
 
         Column(){
-            SurfaceText("Group ${group + 1}",
-                GlanceModifier.clickable(
-                    actionRunCallback<ToggleDropdownAction>())
-                    .background(GlanceTheme.colors.surface)
-                    .padding(2.dp)
-                    .cornerRadius(8.dp))
+            Row {
+                var backgroundGroup = GlanceTheme.colors.secondaryContainer
+                var backgroundCourse = GlanceTheme.colors.secondaryContainer
+
+                var foregroundGroup = GlanceTheme.colors.onSecondaryContainer
+                var foregroundCourse = GlanceTheme.colors.onSecondaryContainer
+
+                if(state.isExpanded)
+                when(state.window){
+                    ToggleWindow.Groups -> {
+                        backgroundGroup = GlanceTheme.colors.tertiary
+                        foregroundGroup = GlanceTheme.colors.onTertiary
+                    }
+                    ToggleWindow.Courses -> {
+                        backgroundCourse = GlanceTheme.colors.tertiary
+                        foregroundCourse = GlanceTheme.colors.onTertiary
+                    }
+                }
+
+                SelectionToggleButton("Course $course",
+                    backgroundCourse,
+                    foregroundCourse,
+                    ToggleWindow.Courses)
+
+                Spacer(GlanceModifier.width(5.dp))
+
+                SelectionToggleButton("Group ${group + 1}",
+                    backgroundGroup,
+                    foregroundGroup,
+                    ToggleWindow.Groups)
+            }
 
 
-            if (isExpanded) {
-                GroupGrid((0..9).toList())
+            if (state.isExpanded) {
+                Spacer(GlanceModifier.height(5.dp))
+                when(state.window){
+                    ToggleWindow.Groups -> {
+                        GroupGrid(validGroups)
+                    }
+                    ToggleWindow.Courses -> {
+                        CourseGrid(validCourses)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SelectionToggleButton(
+    text: String,
+    background: ColorProvider,
+    foreground: ColorProvider,
+    toggleWindow: ToggleWindow)
+{
+    Text(text,
+        style = TextStyle(
+            color = foreground),
+        modifier = GlanceModifier.clickable(
+            actionRunCallback<ToggleDropdownAction>(
+                actionParametersOf(ToggleDropdownAction.WINDOW_TOGGLE_KEY to toggleWindow)))
+            .background(background)
+            .padding(5.dp, 2.dp)
+            .cornerRadius(8.dp))
+
+}
+
+
+
+@Composable
+fun CourseGrid(items: List<Int>) {
+    val groups = (items).chunked(5)
+
+    Column(modifier = GlanceModifier.fillMaxWidth()
+        .cornerRadius(5.dp)) {
+        groups.forEach { rowItems ->
+            Row(modifier = GlanceModifier.fillMaxWidth()) {
+                rowItems.forEach { i ->
+                    Box(
+                        modifier = GlanceModifier.padding(4.dp)
+                            .background(if (i % 2 == 0) GlanceTheme.colors.inversePrimary else GlanceTheme.colors.primary)
+                            .defaultWeight()
+                            .clickable(
+                                actionRunCallback<CourseSelectActionCallback>(
+                                    parameters = actionParametersOf(
+                                        CourseSelectActionCallback.SELECT_COURSE_BUTTON_KEY to i
+                                    )
+                                )),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            style = TextStyle(
+                                color = if (i % 2 == 0) GlanceTheme.colors.onSurface else GlanceTheme.colors.onPrimary
+                            ),
+                            text = "${i}"
+                        )
+                    }
+                }
             }
         }
     }

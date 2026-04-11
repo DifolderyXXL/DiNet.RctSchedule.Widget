@@ -1,6 +1,7 @@
 package com.example.rctschedule.Services.Repositories
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -12,7 +13,8 @@ class ApplicationSettingsRepository @Inject constructor(
 ) : PrefsRepository<ApplicationSettings>(
     context,
     SETTINGS_VALUE_NAME,
-    createJsonSerializer(ApplicationSettings.Default)
+    createJsonSerializer(ApplicationSettings.Default),
+    ReplaceFileCorruptionHandler { ApplicationSettings.Default }
 ){
 
     companion object{

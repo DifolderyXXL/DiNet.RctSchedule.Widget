@@ -14,9 +14,10 @@ class ScheduleCacheService @Inject constructor(
     @DatabaseDispatcher private val dbDispatcher : CoroutineDispatcher,
     private val db: AppDatabase
 ) {
-    suspend fun save(data: CacheEntry<GroupExcelWeeksDTO>)
+    suspend fun save(course:Int, data: CacheEntry<GroupExcelWeeksDTO>)
     = withContext(dbDispatcher) {
         val entity = GroupScheduleEntity(
+            courseId = course,
             groupId = data.data.group,
             updateTime = data.timestamp,
             weeksData = data.data
@@ -24,13 +25,13 @@ class ScheduleCacheService @Inject constructor(
         db.scheduleDao().upsertSchedule(entity)
     }
 
-    suspend fun load(group: Int) : CacheEntry<GroupExcelWeeksDTO>? {
+    suspend fun load(course: Int, group: Int) : CacheEntry<GroupExcelWeeksDTO>? {
         var res : CacheEntry<GroupExcelWeeksDTO>? = null
         try {
 
             withContext(dbDispatcher)
             {
-                val result = db.scheduleDao().loadById(group)
+                val result = db.scheduleDao().loadById(course, group)
 
                 if (!result.isEmpty()) {
                     val target = result.first()

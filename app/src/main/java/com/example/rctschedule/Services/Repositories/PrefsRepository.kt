@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.Serializer
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -49,12 +50,14 @@ inline fun <reified T> createJsonSerializer(defaultValue: T) = object : Serializ
 abstract class PrefsRepository<T: Any>(
     private val context: Context,
     private val contentPrefsName: String,
-    private val serializer: Serializer<T>
+    private val serializer: Serializer<T>,
+    corruptionHandler: ReplaceFileCorruptionHandler<T>? = null
 ){
 
     val Context.dataStore by dataStore(
         fileName = contentPrefsName,
-        serializer = serializer)
+        serializer = serializer,
+        corruptionHandler = corruptionHandler)
 
 
     val valueFlow: Flow<T> = context.dataStore.data

@@ -19,6 +19,8 @@ object DatabaseModule {
         return Room.databaseBuilder(
             app,
             AppDatabase::class.java, GroupScheduleEntity.tabelName
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 }

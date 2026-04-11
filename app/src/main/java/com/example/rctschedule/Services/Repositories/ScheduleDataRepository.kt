@@ -6,6 +6,7 @@ import com.example.rctschedule.Model.CacheEntry
 import com.example.rctschedule.Model.ScheduleGroupWeeksData
 import com.example.rctschedule.Services.ScheduleCacheService
 import com.example.rctschedule.Services.ScheduleFetchService
+import com.example.rctschedule.UseCases.GetAppSettingsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +30,7 @@ class ScheduleDataRepository @Inject constructor(
     private val scheduleFetchService: ScheduleFetchService,
     private val scheduleCacheService: ScheduleCacheService,
     private val transformService: TransformService,
-    private val appSettingsRepository: ApplicationSettingsRepository
+    private val appSettingsUseCase: GetAppSettingsUseCase
 ) {
     private val _scheduleState =
         MutableStateFlow<Lce<CacheEntry<ScheduleGroupWeeksData>>>(Lce.Loading)
@@ -96,9 +97,9 @@ class ScheduleDataRepository @Inject constructor(
     }
 
     private suspend fun loadFromCache() : Result<CacheEntry<ScheduleGroupWeeksData>> {
-        val settings = appSettingsRepository.get()
+        val settings = appSettingsUseCase()
 
-        val value = scheduleCacheService.load(settings.selectedGroup)
+        val value = scheduleCacheService.load(settings.selectedCourse, settings.selectedGroup)
 
         if(value != null) {
             val data = CacheEntry(
@@ -114,9 +115,11 @@ class ScheduleDataRepository @Inject constructor(
 
     private suspend fun tryLoadFromNetworkAndSave() : Result<CacheEntry<ScheduleGroupWeeksData>>
     {
-        val settings = appSettingsRepository.get()
+        val settings = appSettingsUseCase()
 
-        val value = scheduleFetchService.fetchAsync(settings.selectedGroup)
+        val value = scheduleFetchService.fetchAsync(
+            settings.selectedCourse, settings.selectedGroup)
+
         if(value.isSuccess)
         {
             val rawTable = value.getOrNull()
@@ -129,7 +132,7 @@ class ScheduleDataRepository @Inject constructor(
             )
 
             val state = CacheEntry(rawTable, resultValue.timestamp)
-            scheduleCacheService.save(state)
+            scheduleCacheService.save(settings.selectedCourse, state)
 
 
             return Result.success(resultValue)

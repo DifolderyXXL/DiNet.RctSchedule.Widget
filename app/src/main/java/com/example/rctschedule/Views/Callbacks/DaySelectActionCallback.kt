@@ -8,6 +8,7 @@ import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.updateAll
 import com.example.rctschedule.Model.WidgetEntry
 import com.example.rctschedule.Services.Repositories.GroupToggleRepository
+import com.example.rctschedule.Services.Repositories.ToggleData
 import com.example.rctschedule.Views.MyAppWidget
 import com.example.rctschedule.Views.SelectDayButtonType
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,7 @@ class DaySelectActionCallback : ActionCallback {
         withContext(Dispatchers.IO) {
             ep.getSelectDisplayUseCase()(selectedDayOfWeek = day)
 
-            ep.getGroupToggleRepository().set(false)
+            ep.getGroupToggleRepository().set(ToggleData.Default)
         }
 
         MyAppWidget().update(context, glanceId)
@@ -41,13 +42,13 @@ class DaySelectActionCallback : ActionCallback {
 
 suspend fun updateAndCloseMenu(context: Context, repo: GroupToggleRepository) {
     withContext(Dispatchers.Main) {
-        repo.set(false)
+        repo.set(ToggleData.Default)
         MyAppWidget().updateAll(context)
     }
 }
 
 suspend fun closeMenu(repo: GroupToggleRepository) {
     withContext(Dispatchers.Main) {
-        repo.set(false)
+        repo.set(ToggleData.Default)
     }
 }

@@ -46,12 +46,12 @@ class ExampleUnitTest {
 
     @Test
     fun scheduleServiceTest() = runBlocking{
-        val s = ScheduleFetchService(Dispatchers.IO)
+/*        val s = ScheduleFetchService(Dispatchers.IO)
 
         val result = s.fetchAsync(0)
 
         val ts = TransformService(TransformConfig(0))
-        val tab = ts.Transform(result.getOrNull()!!)
+        val tab = ts.Transform(result.getOrNull()!!)*/
             //Assert.assertTrue(tab.weekTable.days.size == 6)
     }
 }

@@ -4,9 +4,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ApplicationSettings(
-    val selectedGroup: Int
+    val selectedCourse: Int,
+    val selectedGroup: Int,
 ){
-    constructor() : this(0)
+    constructor() : this(0, 0)
 
     companion object {
         val Default = ApplicationSettings()

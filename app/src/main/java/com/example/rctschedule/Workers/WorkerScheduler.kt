@@ -57,7 +57,7 @@ class WorkerScheduler @Inject constructor(
 
         workManager.enqueueUniquePeriodicWork(
             UPDATE_WORKER_NAME,
-            ExistingPeriodicWorkPolicy.UPDATE,
+            ExistingPeriodicWorkPolicy.KEEP,
             worker
         )
 

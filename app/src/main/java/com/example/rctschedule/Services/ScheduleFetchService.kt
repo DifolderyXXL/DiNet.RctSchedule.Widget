@@ -1,71 +1,26 @@
 package com.example.rctschedule.Services
 
 import com.example.rctschedule.Di.IoDispatcher
-import com.example.rctschedule.Data.ColumnArgument
-import com.example.rctschedule.Data.ExcelParser
-import com.example.rctschedule.Data.ExcelSheetWeeks
-import com.example.rctschedule.Model.GroupExcelTableDTO
 import com.example.rctschedule.Model.GroupExcelWeeksDTO
-import com.example.rctschedule.Model.ScheduleMeta
+import com.example.rctschedule.Services.Parsing.CourseParserProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.apache.poi.ss.util.CellReference
-import java.net.URL
 import javax.inject.Inject
 
-object ExcelTableHelper
-{
-    val scheduleLink = "https://docs.google.com/spreadsheets/d/11LI8TxCfm8zyniVfH4gCaEzzgpTlSqHWeDob5sprBxw/export?format=xlsx"
-    val metaColumnFromLetter = "B"
-    val groupStartColumnLetter = "D"
-    val groupDefaultColumnCount = 2
-
-    val metaColumnArgument : ColumnArgument
-        get() {
-            return ColumnArgument(
-                2,
-                CellReference.convertColStringToIndex(metaColumnFromLetter))
-        }
-
-    fun getGroupColumnArgument(group: Int) : ColumnArgument{
-        val index = CellReference.convertColStringToIndex(groupStartColumnLetter)
-
-        var add = 0
-        if(group > 5 -1)
-            add = 1
-        return ColumnArgument(
-            groupDefaultColumnCount,
-            index + group*groupDefaultColumnCount + add
-        )
-    }
-}
-
 class ScheduleFetchService @Inject constructor(
+    private val courseParserProvider: CourseParserProvider,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    suspend fun fetchAsync(group: Int) : Result<GroupExcelWeeksDTO>
+    suspend fun fetchAsync(course: Int, group: Int) : Result<GroupExcelWeeksDTO>
     {
         var result: GroupExcelWeeksDTO? = null
 
         return withContext(ioDispatcher)
         {
             try {
-                val url = URL(ExcelTableHelper.scheduleLink)
+                val parser = courseParserProvider.get(course)
 
-                val rp = ExcelParser()
-
-                val weeks = rp.parseWorkbook(
-                    url.openStream(),
-                    5,
-                    100,
-                    listOf(
-                        ExcelTableHelper.metaColumnArgument,
-                        ExcelTableHelper.getGroupColumnArgument(group)
-                    )
-                )
-
-                result = getWeeksDto(weeks, group)
-
+                result = parser.get(group)
             } catch (e: Exception) {
                 e.printStackTrace()
 
@@ -73,18 +28,6 @@ class ScheduleFetchService @Inject constructor(
             }
             Result.success(result)
         }
-    }
-
-    private fun getWeeksDto(excelWeeks: ExcelSheetWeeks, group: Int) : GroupExcelWeeksDTO
-    {
-        val mapped = excelWeeks.weeks.map{e->
-            GroupExcelTableDTO(
-                e.week,
-                ScheduleMeta(e.dateRange, e.weekNumber)
-            )
-        }
-
-        return GroupExcelWeeksDTO(mapped, group)
     }
 }
 

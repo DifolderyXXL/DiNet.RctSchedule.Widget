@@ -89,6 +89,11 @@ dependencies {
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.work.runtime.ktx)
 
+    // hilt tests
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("com.google.dagger:hilt-android-testing:2.55")
+    kspTest("com.google.dagger:hilt-android-compiler:2.55")
+
     implementation(libs.gson)
 
     implementation(libs.androidx.concurrent.futures)
@@ -108,6 +113,7 @@ dependencies {
 }
 
 dependencies {
+    implementation(libs.androidx.runner)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 }
 

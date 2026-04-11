@@ -5,12 +5,15 @@ import androidx.constraintlayout.solver.Cache
 import com.example.rctschedule.Model.CacheEntry
 import com.example.rctschedule.Model.ScheduleGroupWeeksData
 import com.example.rctschedule.Model.ScheduleMeta
+import com.example.rctschedule.Services.Repositories.ApplicationSettingsRepository
 import com.example.rctschedule.Services.Repositories.GroupToggleRepository
 import com.example.rctschedule.Services.Repositories.Lce
 import com.example.rctschedule.Services.Repositories.ScheduleDataRepository
+import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
 import com.example.rctschedule.Services.Repositories.States.WidgetDisplayMode
 import com.example.rctschedule.Services.Repositories.WidgetDisplayModeRepository
 import com.example.rctschedule.TransformExcelDayTable
+import com.example.rctschedule.UseCases.GetAppSettingsUseCase
 import com.example.rctschedule.UseCases.GetWidgetDisplayDataUseCase
 import com.example.rctschedule.ViewModels.ContentState
 import com.example.rctschedule.ViewModels.DaySelectState
@@ -30,6 +33,8 @@ class ScheduleWidgetLoader @Inject constructor(
     private val displayModeRepository: WidgetDisplayModeRepository,
     private val getWidgetDisplayDataUseCase: GetWidgetDisplayDataUseCase,
     private val groupToggleRepository: GroupToggleRepository,
+    private val applicationSettingsRepository: ApplicationSettingsRepository,
+    private val getAppSettingsUseCase: GetAppSettingsUseCase
 ) {
 
     suspend fun getCurrentState(): ScheduleUiState {
@@ -45,30 +50,38 @@ class ScheduleWidgetLoader @Inject constructor(
             scheduleRepo.scheduleState.filterNotNull(),
             displayModeRepository.valueFlow,
             groupToggleRepository.valueFlow,
+            applicationSettingsRepository.valueFlow
 
-        ) { scheduleLce, displayMode, _ ->
+        ) { scheduleLce, displayMode, _, _ ->
             mapToUiState(scheduleLce, displayMode)
         }
     }
 
-    private suspend fun mapToUiState(scheduleLce: Lce<CacheEntry<ScheduleGroupWeeksData>>?, displayMode: WidgetDisplayMode): ScheduleUiState {
+    private suspend fun mapToUiState(
+        scheduleLce: Lce<CacheEntry<ScheduleGroupWeeksData>>?,
+        displayMode: WidgetDisplayMode,
+        ): ScheduleUiState {
         val fullSchedule = when (scheduleLce) {
             is Lce.Content -> scheduleLce.data
             else -> scheduleRepo.cachedState.value
         }
 
+        val appSettings = getAppSettingsUseCase()
+
         if (fullSchedule == null) {
             return when (scheduleLce) {
-                is Lce.Error -> ScheduleUiState()
-                else -> ScheduleUiState()
+                is Lce.Error -> ScheduleUiState(appSettings = appSettings)
+                else -> ScheduleUiState(appSettings = appSettings)
             }
         }
 
         val displayData = getWidgetDisplayDataUseCase()
 
+
         return ScheduleUiState(
             content = ContentState(
                 fullSchedule.data.group,
+                appSettings.selectedCourse,
                 displayData,
                 fullSchedule.timestamp
             ),
@@ -82,6 +95,8 @@ class ScheduleWidgetLoader @Inject constructor(
                 days = DayOfWeek.entries,
                 selectedDay = displayData?.day?.day ?: DayOfWeek.MONDAY
             ),
+
+            appSettings = appSettings
         )
     }
 }

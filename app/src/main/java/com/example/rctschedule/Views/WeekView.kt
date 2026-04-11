@@ -45,7 +45,7 @@ class WeekView(val state: ContentState) : GlanceView {
         Column(modifier)
         {
             if(state.displayData != null) {
-                Header(state.displayData.week.meta, state.group)
+                Header(state.displayData.week.meta, state.course, state.group)
                 TableView(state.displayData.day.weekTable)
             }
 
@@ -54,7 +54,7 @@ class WeekView(val state: ContentState) : GlanceView {
     }
 
     @Composable
-    private fun Header(metaState: ScheduleMeta, group: Int)
+    private fun Header(metaState: ScheduleMeta, course: Int, group: Int)
     {
         Row(GlanceModifier.fillMaxWidth())
         {
@@ -65,7 +65,7 @@ class WeekView(val state: ContentState) : GlanceView {
                     formatter.format(
                         metaState.dateRange.to
                     )
-                }(${metaState.weekNumber}-week) (Group ${group+1})")
+                }(${metaState.weekNumber}-week) (Course ${course}) (Group ${group+1})")
 
         }
     }
