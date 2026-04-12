@@ -11,7 +11,8 @@ interface IWebApi {
 class RctWebApi @Inject constructor() : IWebApi{
     val excelTabId = mapOf(
         1 to "1Wmsij8rOJAcOaPaKWnUphEghdldCRvXDqvX7am6Km4A",
-        2 to "11LI8TxCfm8zyniVfH4gCaEzzgpTlSqHWeDob5sprBxw"
+        2 to "11LI8TxCfm8zyniVfH4gCaEzzgpTlSqHWeDob5sprBxw",
+        3 to "1itE56-6GQvK2MvNBBtos2O7sGFGD0pC7zpWM4CV2OnU"
     )
 
     override fun provideSheetForCourse(course: Int): XSSFWorkbook {

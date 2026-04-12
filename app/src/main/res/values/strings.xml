@@ -4,4 +4,21 @@
     <string name="configure">Configure</string>
     <string name="add_widget">Add widget</string>
     <string name="app_widget_description">This is an app widget description</string>
+
+    <string name="course">Course</string>
+    <string name="group">Group</string>
+
+    <string name="loading">Loading...</string>
+    <string name="error_loading_schedule">Error loading schedule</string>
+    <string name="day_off">Day off</string>
+
+
+    <string name="schedule_lce_content">Content</string>
+    <string name="schedule_lce_loading">Loading</string>
+    <string name="schedule_lce_error">Error</string>
+
+    <string name="last_update">Last update at</string>
+    <string name="week">week</string>
+    <string name="today">today</string>
+
 </resources>

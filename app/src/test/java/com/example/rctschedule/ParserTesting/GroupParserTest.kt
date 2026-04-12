@@ -31,7 +31,17 @@ class GroupParserTest {
 
     @Test
     fun `happy path`() {
-        val weeks= courseParserProvider.get(1).get(9).weeks
+        val colors= courseParserProvider.get(1).get(9).weeks.flatMap {
+            it.table.rows
+        }.flatMap {
+            it
+        }.map {
+            it.rgb
+        }.filter { it != null }
+            .distinct()
+
+
+
 
         return
     }

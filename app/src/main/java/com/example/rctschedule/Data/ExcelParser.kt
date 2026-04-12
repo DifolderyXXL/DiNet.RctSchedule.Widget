@@ -1,26 +1,14 @@
 package com.example.rctschedule.Data
 
-import android.util.Log
-import com.example.rctschedule.CombineTableColumns
 import com.example.rctschedule.Model.DateRange
 import com.example.rctschedule.Model.ScheduleMeta
-import org.apache.poi.ss.usermodel.*
-import org.apache.poi.ss.util.CellRangeAddress
-import org.apache.poi.xssf.usermodel.XSSFSheet
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import java.io.InputStream
-import java.time.LocalDate
-import java.time.MonthDay
-import java.time.format.DateTimeFormatter
-import kotlin.math.min
-import kotlin.text.get
 
 data class ExcelCell(
     val value: String,
     val rowSpan: Int = 1,
     val colSpan: Int = 1,
     val isMerged: Boolean = false,
-    val rgb: ByteArray?
+    val rgb: String?
 )
 {
     constructor() : this("", 1, 1, false, null)
@@ -45,7 +33,7 @@ data class ExcelCell(
         result = 31 * result + colSpan
         result = 31 * result + isMerged.hashCode()
         result = 31 * result + value.hashCode()
-        result = 31 * result + (rgb?.contentHashCode() ?: 0)
+        result = 31 * result + (rgb?.hashCode() ?: 0)
         return result
     }
 }

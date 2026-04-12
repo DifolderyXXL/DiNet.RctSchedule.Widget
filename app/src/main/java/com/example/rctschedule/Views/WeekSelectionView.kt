@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionRunCallback
@@ -12,6 +13,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Row
 import androidx.glance.layout.padding
 import com.example.rctschedule.Model.ScheduleMeta
+import com.example.rctschedule.R
 import com.example.rctschedule.ViewModels.WeekSelectionState
 import com.example.rctschedule.Views.Callbacks.WeekSelectActionCallback
 import java.text.SimpleDateFormat
@@ -39,6 +41,8 @@ class WeekSelectionView(val weekSelectionState: WeekSelectionState) : GlanceView
 
             val formatter = DateTimeFormatter.ofPattern("dd.MM")
 
+            val context = LocalContext.current
+
             ButtonWithoutMarker(
                 boxColor,
                 textColor,
@@ -46,7 +50,7 @@ class WeekSelectionView(val weekSelectionState: WeekSelectionState) : GlanceView
                     formatter.format(
                         data.dateRange.to
                     )
-                } (${data.weekNumber}-week)",
+                } (${data.weekNumber}-${context.getString(R.string.week)})",
                 GlanceModifier
                     .clickable(actionRunCallback<WeekSelectActionCallback>(
                         parameters = actionParametersOf(

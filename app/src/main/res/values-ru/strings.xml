@@ -1,0 +1,16 @@
+<resources>
+    <string name="course">Курс</string>
+    <string name="group">Группа</string>
+
+    <string name="loading">Загрузка...</string>
+    <string name="error_loading_schedule">Ошибка загрузки расписания</string>
+    <string name="day_off">Выходной</string>
+
+    <string name="schedule_lce_content">Данные получены</string>
+    <string name="schedule_lce_loading">Загрузка</string>
+    <string name="schedule_lce_error">Ошибка</string>
+
+    <string name="last_update">Последнее обновление</string>
+    <string name="week">неделя</string>
+    <string name="today">сегодня</string>
+</resources>

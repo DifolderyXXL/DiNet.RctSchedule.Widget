@@ -51,7 +51,9 @@ object ParserModule {
             listOf("N"), 2, 10, 5, 100
         ))
 
-
+        provider.addContext(GapSheetRegularContext(
+            listOf("N", "S"), 3, 9, 5, 100
+        ))
 
         return provider
     }

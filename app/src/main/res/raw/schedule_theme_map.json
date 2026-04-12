@@ -1,0 +1,28 @@
+{
+  "light": {
+    "_comment1": "ПЗ",
+    "C9DAF8":"C9DAF8",
+
+    "_comment2": "Лекция",
+    "D9EAD3":"D9EAD3",
+
+    "_comment3": "Лабы",
+    "FCE5CD":"FCE5CD",
+
+    "_comment4": "Кураторский",
+    "FFF2CC":"FFF2CC"
+  },
+  "dark": {
+    "_comment1": "ПЗ",
+    "C9DAF8":"4D6B9F",
+
+    "_comment2": "Лекция",
+    "D9EAD3":"638C55",
+
+    "_comment3": "Лабы",
+    "FCE5CD":"9E7F60",
+
+    "_comment4": "Кураторский",
+    "FFF2CC":"998A5E"
+  }
+}

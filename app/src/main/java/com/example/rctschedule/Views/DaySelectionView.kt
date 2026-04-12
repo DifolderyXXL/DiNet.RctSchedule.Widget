@@ -7,6 +7,7 @@ import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionRunCallback
@@ -56,13 +57,18 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
                 .cornerRadius(8.dp)
                 .padding(horizontal = 8.dp))
             {
-                Text(state.selectedDay.toString(),
+                val context = LocalContext.current
+                val locale = context.resources.configuration.locales[0]
+
+
+                Text(state.selectedDay.getDisplayName(TextStyle.FULL, locale)
+                    .replaceFirstChar { it.uppercase() },
                     style = androidx.glance.text.TextStyle(
                         color = foreground
                     )
                 )
                 if(state.isTodaySelected)
-                    Text("(TODAY)",
+                    Text("(${context.getString(R.string.today).uppercase()})",
                         style = androidx.glance.text.TextStyle(
                             color = foreground
                         )
@@ -97,10 +103,14 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
                 Box(GlanceModifier
                     .defaultWeight()) {
 
+                    val context = LocalContext.current
+                    val locale = context.resources.configuration.locales[0]
+
                     ButtonWithMarker(
                         color,
                         fg,
-                        item.getDisplayName(TextStyle.SHORT, Locale.ROOT),
+                        item.getDisplayName(TextStyle.SHORT, locale)
+                            .replaceFirstChar { it.uppercase() },
                         currentDayOfWeek == item,
                         GlanceModifier
                             .fillMaxWidth()

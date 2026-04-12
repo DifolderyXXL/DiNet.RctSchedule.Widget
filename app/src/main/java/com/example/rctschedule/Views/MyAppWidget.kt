@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.glance.*
 import androidx.glance.action.actionParametersOf
@@ -24,6 +25,7 @@ import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Model.WidgetEntry
 import com.example.rctschedule.Model.WidgetEntryPoint
 import com.example.rctschedule.R
+import com.example.rctschedule.ScheduleTheme.MyExcelAppTheme
 import com.example.rctschedule.Services.Repositories.*
 import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
 import com.example.rctschedule.ViewModels.ScheduleUiState
@@ -94,21 +96,23 @@ class MyAppWidget : GlanceAppWidget() {
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime()
         )
-        SurfaceText("Last update at $dt")
+        val context = LocalContext.current
+        SurfaceText("${context.getString(R.string.last_update)} $dt")
     }
 
     @Composable
     private fun UpdateStateHeader(state: Lce<*>)
     {
-        Row(GlanceModifier.fillMaxWidth(),
+        Row(
             verticalAlignment = Alignment.CenterVertically){
 
+            val context = LocalContext.current
+
             when(state) {
-                is Lce.Content -> SurfaceText("Content")
-                is Lce.Loading -> SurfaceText("Loading")
-                is Lce.Error -> SurfaceText("Error")
+                is Lce.Content -> SurfaceText(context.getString(R.string.schedule_lce_content))
+                is Lce.Loading -> SurfaceText(context.getString(R.string.schedule_lce_loading))
+                is Lce.Error -> SurfaceText(context.getString(R.string.schedule_lce_error))
             }
-            Spacer(GlanceModifier.defaultWeight())
             Image(
                 colorFilter = ColorFilter.tint(GlanceTheme.colors.secondary),
                 provider = ImageProvider(R.drawable.baseline_refresh_24),
@@ -138,8 +142,9 @@ class MyAppWidget : GlanceAppWidget() {
                     contextProvider.getAllCourses(),
                     uiState.appSettings.selectedGroup,
                     (0..<context.getGroupCount()).toList(),
-                    ep.getGroupToggleRepository())
-                UpdateStateHeader(state)
+                    ep.getGroupToggleRepository(),
+                    state)
+
 
                 val day = ep.getDaySelectionPresenter()
                     .present(uiState.selectWeek, uiState.selectDay)
@@ -163,10 +168,12 @@ class MyAppWidget : GlanceAppWidget() {
                     else -> {
                         val scheduleState by ep.getScheduleDataRepository()
                             .scheduleState.collectAsState()
+
+                        val context = LocalContext.current
                         when (scheduleState) {
-                            is Lce.Loading -> SurfaceText("Loading...")
-                            is Lce.Error -> SurfaceText("Error loading schedule")
-                            else -> SurfaceText("Day off")
+                            is Lce.Loading -> SurfaceText(context.getString(R.string.loading))
+                            is Lce.Error -> SurfaceText(context.getString(R.string.error_loading_schedule))
+                            else -> SurfaceText(context.getString(R.string.day_off))
                         }
                     }
                 }
@@ -176,18 +183,27 @@ class MyAppWidget : GlanceAppWidget() {
     }
 
     @Composable
-    fun GroupHeader(course: Int, validCourses: List<Int>, group: Int, validGroups: List<Int>, toggle: GroupToggleRepository) {
+    fun GroupHeader(course: Int, validCourses: List<Int>, group: Int, validGroups: List<Int>, toggle: GroupToggleRepository, lceState: Lce<*>) {
         val state by toggle.valueFlow.collectAsState(ToggleData.Default)
 
         Column(){
-            Row {
-                var backgroundGroup = GlanceTheme.colors.secondaryContainer
-                var backgroundCourse = GlanceTheme.colors.secondaryContainer
+            HeaderRow(course, group, state, lceState)
 
-                var foregroundGroup = GlanceTheme.colors.onSecondaryContainer
-                var foregroundCourse = GlanceTheme.colors.onSecondaryContainer
+            ExpandableSelector(validCourses, validGroups, state)
+            Spacer(GlanceModifier.height(5.dp))
+        }
+    }
 
-                if(state.isExpanded)
+    @Composable
+    fun HeaderRow(course: Int, group: Int, state: ToggleData, lceState: Lce<*>){
+        Row(GlanceModifier.fillMaxWidth()) {
+            var backgroundGroup = GlanceTheme.colors.secondaryContainer
+            var backgroundCourse = GlanceTheme.colors.secondaryContainer
+
+            var foregroundGroup = GlanceTheme.colors.onSecondaryContainer
+            var foregroundCourse = GlanceTheme.colors.onSecondaryContainer
+
+            if(state.isExpanded)
                 when(state.window){
                     ToggleWindow.Groups -> {
                         backgroundGroup = GlanceTheme.colors.tertiary
@@ -199,33 +215,41 @@ class MyAppWidget : GlanceAppWidget() {
                     }
                 }
 
-                SelectionToggleButton("Course $course",
-                    backgroundCourse,
-                    foregroundCourse,
-                    ToggleWindow.Courses)
+            val context = LocalContext.current
+            SelectionToggleButton("${context.getString(R.string.course)} $course",
+                backgroundCourse,
+                foregroundCourse,
+                ToggleWindow.Courses)
 
-                Spacer(GlanceModifier.width(5.dp))
+            Spacer(GlanceModifier.width(5.dp))
 
-                SelectionToggleButton("Group ${group + 1}",
-                    backgroundGroup,
-                    foregroundGroup,
-                    ToggleWindow.Groups)
-            }
+            SelectionToggleButton("${context.getString(R.string.group)} ${group + 1}",
+                backgroundGroup,
+                foregroundGroup,
+                ToggleWindow.Groups)
+
+            Spacer(GlanceModifier.defaultWeight())
+
+            UpdateStateHeader(lceState)
+        }
+    }
 
 
-            if (state.isExpanded) {
-                Spacer(GlanceModifier.height(5.dp))
-                when(state.window){
-                    ToggleWindow.Groups -> {
-                        GroupGrid(validGroups)
-                    }
-                    ToggleWindow.Courses -> {
-                        CourseGrid(validCourses)
-                    }
+    @Composable
+    fun ExpandableSelector(validCourses: List<Int>, validGroups: List<Int>, state: ToggleData){
+        if (state.isExpanded) {
+            Spacer(GlanceModifier.height(5.dp))
+            when(state.window){
+                ToggleWindow.Groups -> {
+                    GroupGrid(validGroups)
+                }
+                ToggleWindow.Courses -> {
+                    CourseGrid(validCourses)
                 }
             }
         }
     }
+
 }
 
 @Composable

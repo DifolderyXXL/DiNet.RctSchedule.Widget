@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
@@ -23,6 +24,9 @@ import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Data.ExcelCell
 import com.example.rctschedule.Model.ScheduleDayData
 import com.example.rctschedule.Model.ScheduleMeta
+import com.example.rctschedule.R
+import com.example.rctschedule.ScheduleTheme.MyExcelAppTheme
+import com.example.rctschedule.ScheduleTheme.ScheduleTheme
 import com.example.rctschedule.TransformExcelColumn
 import com.example.rctschedule.TransformExcelRow
 import com.example.rctschedule.TransformExcelDayTable
@@ -60,12 +64,16 @@ class WeekView(val state: ContentState) : GlanceView {
         {
             val formatter = DateTimeFormatter.ofPattern("dd MMM")
 
+            val context = LocalContext.current
+
             SurfaceText(
                 "${formatter.format(metaState.dateRange.from)}-${
                     formatter.format(
                         metaState.dateRange.to
                     )
-                }(${metaState.weekNumber}-week) (Course ${course}) (Group ${group+1})")
+                }(${metaState.weekNumber}-${context.getString(R.string.week)}) " +
+                        "(${context.getString(R.string.course)} ${course}) " +
+                        "(${context.getString(R.string.group)} ${group+1})")
 
         }
     }
@@ -73,13 +81,15 @@ class WeekView(val state: ContentState) : GlanceView {
     @Composable
     fun TableView(pr: TransformExcelDayTable)
     {
-        LazyColumn(GlanceModifier
-            .background(GlanceTheme.colors.background)
-            .cornerRadius(8.dp)){
-            items(items = pr.rows){item ->
-                Column {
-                    RowView(item)
-                    Spacer(modifier = GlanceModifier.height(4.dp))
+        MyExcelAppTheme{
+            LazyColumn(GlanceModifier
+                .background(GlanceTheme.colors.background)
+                .cornerRadius(8.dp)){
+                items(items = pr.rows){item ->
+                    Column {
+                        RowView(item)
+                        Spacer(modifier = GlanceModifier.height(4.dp))
+                    }
                 }
             }
         }
@@ -123,9 +133,12 @@ class WeekView(val state: ContentState) : GlanceView {
     @Composable
     fun CellView(c: ExcelCell, modifier: GlanceModifier = GlanceModifier)
     {
-        var background = GlanceTheme.colors.surfaceVariant
-        if(c.rgb != null)
-            background = ColorProvider(ConvertColor(c.rgb))
+        val background =
+            ScheduleTheme.current.getMappedColor(
+                c.rgb,
+                GlanceTheme.colors.surfaceVariant)
+
+
         Column(modifier
             .fillMaxWidth()
             .padding(2.dp)
@@ -137,11 +150,9 @@ class WeekView(val state: ContentState) : GlanceView {
         }
     }
 
-    private fun ConvertColor(rgb: ByteArray) : Color
-    {
-        return Color((rgb[0] + 128) / 256f,
-            (rgb[1] + 128) / 256f,
-            (rgb[2] + 128) / 256f)
+    fun parseExcelHexToComposeColor(hex: String): Color {
+        val colorLong = hex.removePrefix("#").toLong(16)
+        return Color(colorLong)
     }
 }
 

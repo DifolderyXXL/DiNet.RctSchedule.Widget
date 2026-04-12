@@ -73,10 +73,11 @@ class RegularSheetParser @Inject constructor() : IRegularSheetParser{
 
                 val mergedRegion = findMergedRegion(mergedRegions, r, c)
 
-                val color = cell.cellStyle?.fillForegroundXSSFColor?.rgb
+                val color = cell.cellStyle?.fillForegroundXSSFColor?.argbHex
                 if (mergedRegion != null) {
                     if (mergedRegion.firstRow <= r && mergedRegion.firstColumn <= c) {
                         val value = getCellValue(cell)
+
                         val rowSpan = mergedRegion.lastRow - mergedRegion.firstRow + 1
                         val colSpan = mergedRegion.lastColumn - mergedRegion.firstColumn + 1
 
@@ -113,7 +114,7 @@ class RegularSheetParser @Inject constructor() : IRegularSheetParser{
         if (cell == null) return ""
 
         return when (cell.cellType) {
-            CellType.STRING -> cell.stringCellValue
+            CellType.STRING -> cell.stringCellValue.trimStart().trimEnd()
             CellType.NUMERIC -> {
                 if (DateUtil.isCellDateFormatted(cell)) {
                     cell.dateCellValue.toString()
