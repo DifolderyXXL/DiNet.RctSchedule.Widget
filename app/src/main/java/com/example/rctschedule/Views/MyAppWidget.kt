@@ -7,6 +7,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.glance.*
 import androidx.glance.action.actionParametersOf
@@ -19,7 +20,10 @@ import androidx.glance.background
 import androidx.glance.layout.*
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.preview.ExperimentalGlancePreviewApi
+import androidx.glance.preview.Preview
 import androidx.glance.state.PreferencesGlanceStateDefinition
+import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Model.WidgetEntry
@@ -30,6 +34,11 @@ import com.example.rctschedule.Services.Repositories.*
 import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
 import com.example.rctschedule.ViewModels.ScheduleUiState
 import com.example.rctschedule.Views.Callbacks.*
+import com.example.rctschedule.Views.Figures.HorizontalSpacer
+import com.example.rctschedule.Views.Figures.SurfaceText
+import com.example.rctschedule.Views.Figures.VerticalSpacer
+import com.example.rctschedule.Views.Figures.button_round
+import com.example.rctschedule.Views.Figures.content_round
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +55,60 @@ import java.util.Date
 class MyAppWidget : GlanceAppWidget() {
 
     override val stateDefinition = PreferencesGlanceStateDefinition
+
+
+    @OptIn(ExperimentalGlancePreviewApi::class)
+    @Preview(widthDp = 200, heightDp = 200)
+    @Composable
+    fun PreviewGlance()
+    {
+
+        GlanceTheme{
+            Column(GlanceModifier
+                .fillMaxHeight()
+                .background(GlanceTheme.colors.widgetBackground)
+                .appWidgetBackground()
+                .cornerRadius(content_round)
+                .padding(5.dp)) {
+
+                Row(GlanceModifier
+                    .fillMaxWidth()
+                    .height(20.dp)) {
+
+                    Box(GlanceModifier
+                        .background(GlanceTheme.colors.onSecondaryContainer)
+                        .cornerRadius(button_round)) {
+
+                    }
+
+                    VerticalSpacer()
+
+                    Box(GlanceModifier
+                        .background(GlanceTheme.colors.onSecondaryContainer)
+                        .cornerRadius(button_round)) {
+
+                    }
+                }
+
+                Box(GlanceModifier
+                    .defaultWeight()
+                    .fillMaxWidth()
+                    .background(GlanceTheme.colors.onSecondaryContainer)
+                    .cornerRadius(content_round)) {
+
+                }
+
+                Box(GlanceModifier
+                    .height(20.dp)
+                    .fillMaxWidth()
+                    .background(GlanceTheme.colors.onSecondaryContainer)
+                    .cornerRadius(content_round)) {
+
+                }
+            }
+        }
+
+    }
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         // In this method, load data needed to render the AppWidget.
@@ -76,7 +139,7 @@ class MyAppWidget : GlanceAppWidget() {
                         .fillMaxHeight()
                         .background(GlanceTheme.colors.widgetBackground)
                         .appWidgetBackground()
-                        .cornerRadius(10.dp)
+                        .cornerRadius(content_round)
                 ) {
 
                     Content(uiState, entryPoint)
@@ -108,11 +171,17 @@ class MyAppWidget : GlanceAppWidget() {
 
             val context = LocalContext.current
 
-            when(state) {
-                is Lce.Content -> SurfaceText(context.getString(R.string.schedule_lce_content))
-                is Lce.Loading -> SurfaceText(context.getString(R.string.schedule_lce_loading))
-                is Lce.Error -> SurfaceText(context.getString(R.string.schedule_lce_error))
+            val text = when(state) {
+                is Lce.Content -> (context.getString(R.string.schedule_lce_content))
+                is Lce.Loading -> (context.getString(R.string.schedule_lce_loading))
+                is Lce.Error -> (context.getString(R.string.schedule_lce_error))
             }
+
+            Text(text,
+                maxLines = 1,
+            style = TextStyle(
+                color = GlanceTheme.colors.onSurface))
+
             Image(
                 colorFilter = ColorFilter.tint(GlanceTheme.colors.secondary),
                 provider = ImageProvider(R.drawable.baseline_refresh_24),
@@ -190,7 +259,7 @@ class MyAppWidget : GlanceAppWidget() {
             HeaderRow(course, group, state, lceState)
 
             ExpandableSelector(validCourses, validGroups, state)
-            Spacer(GlanceModifier.height(5.dp))
+            HorizontalSpacer()
         }
     }
 
@@ -221,7 +290,7 @@ class MyAppWidget : GlanceAppWidget() {
                 foregroundCourse,
                 ToggleWindow.Courses)
 
-            Spacer(GlanceModifier.width(5.dp))
+            VerticalSpacer()
 
             SelectionToggleButton("${context.getString(R.string.group)} ${group + 1}",
                 backgroundGroup,
@@ -238,7 +307,8 @@ class MyAppWidget : GlanceAppWidget() {
     @Composable
     fun ExpandableSelector(validCourses: List<Int>, validGroups: List<Int>, state: ToggleData){
         if (state.isExpanded) {
-            Spacer(GlanceModifier.height(5.dp))
+            HorizontalSpacer()
+
             when(state.window){
                 ToggleWindow.Groups -> {
                     GroupGrid(validGroups)
@@ -267,7 +337,7 @@ fun SelectionToggleButton(
                 actionParametersOf(ToggleDropdownAction.WINDOW_TOGGLE_KEY to toggleWindow)))
             .background(background)
             .padding(5.dp, 2.dp)
-            .cornerRadius(8.dp))
+            .cornerRadius(button_round))
 
 }
 
@@ -278,7 +348,7 @@ fun CourseGrid(items: List<Int>) {
     val groups = (items).chunked(5)
 
     Column(modifier = GlanceModifier.fillMaxWidth()
-        .cornerRadius(5.dp)) {
+        .cornerRadius(content_round)) {
         groups.forEach { rowItems ->
             Row(modifier = GlanceModifier.fillMaxWidth()) {
                 rowItems.forEach { i ->
@@ -313,7 +383,7 @@ fun GroupGrid(items: List<Int>) {
     val groups = (items).chunked(5)
 
     Column(modifier = GlanceModifier.fillMaxWidth()
-        .cornerRadius(5.dp)) {
+        .cornerRadius(content_round)) {
         groups.forEach { rowItems ->
             Row(modifier = GlanceModifier.fillMaxWidth()) {
                 rowItems.forEach { i ->
@@ -342,11 +412,3 @@ fun GroupGrid(items: List<Int>) {
     }
 }
 
-@Composable
-public fun SurfaceText(text: String, modifier: GlanceModifier = GlanceModifier)
-{
-    Text(text,
-        style = TextStyle(
-            color = GlanceTheme.colors.onSurface),
-        modifier = modifier)
-}

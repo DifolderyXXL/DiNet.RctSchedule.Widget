@@ -14,9 +14,7 @@ plugins {
 
 android {
     namespace = "com.example.rctschedule"
-    compileSdk {
-        version = release(35)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.rctschedule"
@@ -113,7 +111,14 @@ dependencies {
 }
 
 dependencies {
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.runtime)
+    implementation(libs.androidx.glance.appwidget.preview)
+    implementation(libs.androidx.glance.preview)
     implementation(libs.androidx.runner)
+    implementation("androidx.compose.ui:ui-tooling-preview:1.10.6")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 }
 

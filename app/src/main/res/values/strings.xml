@@ -1,9 +1,8 @@
 <resources>
-    <string name="app_name">rctschedule</string>
-    <string name="appwidget_text">EXAMPLE</string>
+    <string name="app_name" translatable="false">rctschedule</string>
     <string name="configure">Configure</string>
     <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">This is an app widget description</string>
+    <string name="app_widget_description">Schedule widget for RCT</string>
 
     <string name="course">Course</string>
     <string name="group">Group</string>
@@ -20,5 +19,11 @@
     <string name="last_update">Last update at</string>
     <string name="week">week</string>
     <string name="today">today</string>
+    <string name="home_page_title">Home</string>
+    <string name="debug_page_title">Debug</string>
+    <string name="menu_title">Menu</string>
+    <string name="about_page_title">About</string>
+    <string name="connect_with_developer">Contact the developer via Telegram:</string>
+    <string name="about_app">Widget with an up-to-date schedule for RCT</string>
 
 </resources>
