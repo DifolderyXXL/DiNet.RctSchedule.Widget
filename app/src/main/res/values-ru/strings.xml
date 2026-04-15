@@ -24,4 +24,5 @@
     <string name="about_page_title">О приложении</string>
     <string name="connect_with_developer">Связаться с разработчиком через Telegram:</string>
     <string name="about_app">Виджет с актуальным расписанием для РФиКТ</string>
+    <string name="copy_stacktrace">Copy stacktrace</string>
 </resources>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="horizontal">
+
+<!-- Left Column: Stretches to match Right Column's height -->
+<LinearLayout
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/cell_1a"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Cell 1A: Writing more text here will now expand this cell."
+        android:background="#FFEEEE"
+        android:padding="8dp" />
+
+    <TextView
+        android:id="@+id/cell_1b"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Cell 1B"
+        android:background="#FFCCCC"
+        android:padding="8dp" />
+</LinearLayout>
+
+<!-- Right Column -->
+<LinearLayout
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/cell_2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="Right side content"
+        android:background="#EEFFEE"
+        android:padding="8dp"
+        android:gravity="center_vertical" />
+</LinearLayout>
+</LinearLayout>
+

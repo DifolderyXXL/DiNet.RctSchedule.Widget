@@ -1,5 +1,6 @@
 package com.example.rctschedule.Di
 
+import com.example.rctschedule.Services.Network.ApiClient
 import com.example.rctschedule.Services.Parsing.CourseParserProvider
 import com.example.rctschedule.Services.Parsing.GapSheetRegularContext
 import com.example.rctschedule.Services.Parsing.ICourseParserProvider
@@ -11,6 +12,7 @@ import com.example.rctschedule.Services.Parsing.RctSheetMetadataParser
 import com.example.rctschedule.Services.Parsing.RctWebApi
 import com.example.rctschedule.Services.Parsing.RegularSheetParser
 import com.example.rctschedule.Services.Parsing.SheetRegularContextProvider
+import com.example.rctschedule.Services.Parsing.lowlevel.StandardDownloader
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -56,5 +58,18 @@ object ParserModule {
         ))
 
         return provider
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule{
+    @Provides
+    fun apiClientProvider() : ApiClient{
+        return ApiClient()
+    }
+    @Provides
+    fun chunkedDownloaderProvider(client: ApiClient) : StandardDownloader{
+        return StandardDownloader(client)
     }
 }

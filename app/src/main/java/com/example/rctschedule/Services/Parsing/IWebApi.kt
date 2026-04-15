@@ -1,6 +1,9 @@
 package com.example.rctschedule.Services.Parsing
 
+import com.example.rctschedule.Services.Parsing.lowlevel.StandardDownloader
+import kotlinx.coroutines.runBlocking
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import java.io.ByteArrayInputStream
 import java.net.URL
 import javax.inject.Inject
 
@@ -8,7 +11,9 @@ interface IWebApi {
     fun provideSheetForCourse(course: Int) : XSSFWorkbook
 }
 
-class RctWebApi @Inject constructor() : IWebApi{
+class RctWebApi @Inject constructor(val downloader: StandardDownloader)
+    : IWebApi{
+
     val excelTabId = mapOf(
         1 to "1Wmsij8rOJAcOaPaKWnUphEghdldCRvXDqvX7am6Km4A",
         2 to "11LI8TxCfm8zyniVfH4gCaEzzgpTlSqHWeDob5sprBxw",
@@ -20,7 +25,12 @@ class RctWebApi @Inject constructor() : IWebApi{
             ?: throw Exception("Id for $course course not found")
 
         val url = URL(getLink(id))
-        return XSSFWorkbook(url.openStream())
+
+        val arr = runBlocking{
+            downloader.download(url)
+        }
+
+        return XSSFWorkbook(ByteArrayInputStream(arr))
     }
 
     private fun getLink(id: String) : String

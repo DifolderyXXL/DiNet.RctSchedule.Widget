@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
+import androidx.glance.GlanceComposable
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.ImageProvider
@@ -13,6 +14,7 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -27,6 +29,8 @@ import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.R
 import com.example.rctschedule.ViewModels.DaySelectionState
 import com.example.rctschedule.Views.Callbacks.DaySelectActionCallback
+import com.example.rctschedule.Views.Figures.round10dpBackground
+import com.example.rctschedule.Views.Figures.round8dpBackground
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -44,7 +48,7 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
     private fun DayInfo()
     {
         val color = if(state.isTodaySelected) GlanceTheme.colors.primary
-        else ColorProvider( Color.Transparent)
+        else ColorProvider( Color.Transparent, Color.Transparent)
 
         val foreground = if(state.isTodaySelected) GlanceTheme.colors.onPrimary
         else GlanceTheme.colors.onBackground
@@ -53,9 +57,7 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
         Row(GlanceModifier.fillMaxWidth(),
             horizontalAlignment = Alignment.Horizontal.CenterHorizontally)
         {
-            Row(GlanceModifier.background(color)
-                .cornerRadius(8.dp)
-                .padding(horizontal = 8.dp))
+            showBackgroundIf(state.isTodaySelected, color)
             {
                 val context = LocalContext.current
                 val locale = context.resources.configuration.locales[0]
@@ -75,7 +77,25 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
                     )
             }
         }
+    }
 
+    @Composable
+    fun showBackgroundIf(statement: Boolean, color: ColorProvider, body: @Composable (() -> Unit) ){
+
+        if(statement)
+        {
+            Row(GlanceModifier
+                .round8dpBackground(color)
+                .padding(horizontal = 8.dp)){
+                body()
+            }
+        }
+        else{
+            Row(GlanceModifier
+                .padding(horizontal = 8.dp)){
+                body()
+            }
+        }
     }
 
     @Composable
@@ -114,7 +134,6 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
                         currentDayOfWeek == item,
                         GlanceModifier
                             .fillMaxWidth()
-                            .cornerRadius(10.dp)
                             .clickable( actionRunCallback<DaySelectActionCallback>(
                                 actionParametersOf(
                                     DaySelectActionCallback.SELECT_DAY_BUTTON_KEY to SelectDayButtonType.ByIndex,
@@ -135,7 +154,7 @@ public fun ButtonWithMarker(background: ColorProvider,
                             modifier: GlanceModifier)
 {
     Column(modifier
-        .background(background)
+        .round10dpBackground(background)
         .padding(bottom = 8.dp)
     ){
 
@@ -176,10 +195,7 @@ public fun ButtonWithoutMarker(background: ColorProvider,
                                text: String,
                                modifier: GlanceModifier)
 {
-    Column(modifier
-        .background(ImageProvider(R.drawable.border_only),
-            colorFilter = ColorFilter.tint(background))
-    ){
+    Column(modifier.round10dpBackground(background)){
         Box(
             contentAlignment = Alignment.Center) {
             Text(text,

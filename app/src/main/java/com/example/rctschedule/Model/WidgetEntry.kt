@@ -50,7 +50,7 @@ class WidgetEntry  @Inject constructor(
         fun get(applicationContext: Context): WidgetEntryPoint {
             return cachedEntryPoint ?: synchronized(this){
                 cachedEntryPoint ?: EntryPoints.get(
-                    applicationContext,
+                    applicationContext.applicationContext,
                     WidgetEntryPoint::class.java,
                 ).also { cachedEntryPoint = it }
             }

@@ -25,5 +25,6 @@
     <string name="about_page_title">About</string>
     <string name="connect_with_developer">Contact the developer via Telegram:</string>
     <string name="about_app">Widget with an up-to-date schedule for RCT</string>
+    <string name="copy_stacktrace">Copy stacktrace</string>
 
 </resources>

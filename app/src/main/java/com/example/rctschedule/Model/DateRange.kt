@@ -1,10 +1,11 @@
 package com.example.rctschedule.Model
 
 import java.time.LocalDate
-import java.util.Date
 
 class DateRange(val from: LocalDate, val to: LocalDate){
-    constructor() : this(LocalDate.EPOCH, LocalDate.EPOCH){}
+    constructor() : this(
+        LocalDate.of(1970, 1, 1),
+        LocalDate.of(1970, 1, 1)){}
 }
 
 /*

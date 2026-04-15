@@ -1,27 +1,24 @@
 package com.example.rctschedule.Views
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
-import android.util.Log
+import android.content.Context.CLIPBOARD_SERVICE
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.*
 import androidx.glance.action.actionParametersOf
-import androidx.glance.text.Text
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.*
-import androidx.glance.background
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.layout.*
-import androidx.glance.layout.height
-import androidx.glance.layout.padding
-import androidx.glance.preview.ExperimentalGlancePreviewApi
-import androidx.glance.preview.Preview
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -29,21 +26,20 @@ import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Model.WidgetEntry
 import com.example.rctschedule.Model.WidgetEntryPoint
 import com.example.rctschedule.R
-import com.example.rctschedule.ScheduleTheme.MyExcelAppTheme
 import com.example.rctschedule.Services.Repositories.*
-import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
 import com.example.rctschedule.ViewModels.ScheduleUiState
 import com.example.rctschedule.Views.Callbacks.*
 import com.example.rctschedule.Views.Figures.HorizontalSpacer
 import com.example.rctschedule.Views.Figures.SurfaceText
 import com.example.rctschedule.Views.Figures.VerticalSpacer
 import com.example.rctschedule.Views.Figures.button_round
+import com.example.rctschedule.Views.Figures.calculateTextHeight
 import com.example.rctschedule.Views.Figures.content_round
-import dagger.hilt.android.EntryPointAccessors
+import com.example.rctschedule.Views.Figures.getLocalFontSize
+import com.example.rctschedule.Views.Figures.round10dpBackground
+import com.example.rctschedule.Views.Figures.round8dpBackground
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.ZoneId
@@ -55,60 +51,7 @@ import java.util.Date
 class MyAppWidget : GlanceAppWidget() {
 
     override val stateDefinition = PreferencesGlanceStateDefinition
-
-
-    @OptIn(ExperimentalGlancePreviewApi::class)
-    @Preview(widthDp = 200, heightDp = 200)
-    @Composable
-    fun PreviewGlance()
-    {
-
-        GlanceTheme{
-            Column(GlanceModifier
-                .fillMaxHeight()
-                .background(GlanceTheme.colors.widgetBackground)
-                .appWidgetBackground()
-                .cornerRadius(content_round)
-                .padding(5.dp)) {
-
-                Row(GlanceModifier
-                    .fillMaxWidth()
-                    .height(20.dp)) {
-
-                    Box(GlanceModifier
-                        .background(GlanceTheme.colors.onSecondaryContainer)
-                        .cornerRadius(button_round)) {
-
-                    }
-
-                    VerticalSpacer()
-
-                    Box(GlanceModifier
-                        .background(GlanceTheme.colors.onSecondaryContainer)
-                        .cornerRadius(button_round)) {
-
-                    }
-                }
-
-                Box(GlanceModifier
-                    .defaultWeight()
-                    .fillMaxWidth()
-                    .background(GlanceTheme.colors.onSecondaryContainer)
-                    .cornerRadius(content_round)) {
-
-                }
-
-                Box(GlanceModifier
-                    .height(20.dp)
-                    .fillMaxWidth()
-                    .background(GlanceTheme.colors.onSecondaryContainer)
-                    .cornerRadius(content_round)) {
-
-                }
-            }
-        }
-
-    }
+    override val sizeMode: SizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         // In this method, load data needed to render the AppWidget.
@@ -137,17 +80,17 @@ class MyAppWidget : GlanceAppWidget() {
                 Column(
                     GlanceModifier
                         .fillMaxHeight()
-                        .background(GlanceTheme.colors.widgetBackground)
                         .appWidgetBackground()
-                        .cornerRadius(content_round)
+                        .round8dpBackground(GlanceTheme.colors.widgetBackground)
                 ) {
-
                     Content(uiState, entryPoint)
                 }
             }
         }
 
     }
+
+
 
     @Composable
     private fun LastUpdateTime(lastUpdate: Date)
@@ -241,7 +184,23 @@ class MyAppWidget : GlanceAppWidget() {
                         val context = LocalContext.current
                         when (scheduleState) {
                             is Lce.Loading -> SurfaceText(context.getString(R.string.loading))
-                            is Lce.Error -> SurfaceText(context.getString(R.string.error_loading_schedule))
+                            is Lce.Error -> {
+                                SurfaceText(context.getString(R.string.error_loading_schedule))
+                                val error = (scheduleState as Lce.Error).throwable
+
+                                if(error.message != null)
+                                    SurfaceText("${error.message}")
+
+                                val stacktraceText = context.getString(R.string.copy_stacktrace)
+                                SurfaceText(stacktraceText,
+                                    GlanceModifier.clickable {
+
+                                        val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                                        val clip = ClipData.newPlainText(stacktraceText, error.stackTraceToString())
+
+                                        clipboard.setPrimaryClip(clip)
+                                    })
+                            }
                             else -> SurfaceText(context.getString(R.string.day_off))
                         }
                     }
@@ -335,9 +294,8 @@ fun SelectionToggleButton(
         modifier = GlanceModifier.clickable(
             actionRunCallback<ToggleDropdownAction>(
                 actionParametersOf(ToggleDropdownAction.WINDOW_TOGGLE_KEY to toggleWindow)))
-            .background(background)
             .padding(5.dp, 2.dp)
-            .cornerRadius(button_round))
+            .round10dpBackground(background))
 
 }
 

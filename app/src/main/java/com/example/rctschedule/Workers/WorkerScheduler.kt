@@ -74,7 +74,7 @@ class WorkerScheduler @Inject constructor(
 
     fun forceRunNow() {
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_ROAMING)
+            .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val oneTimeRequest = OneTimeWorkRequestBuilder<UpdateScheduleWorker>()

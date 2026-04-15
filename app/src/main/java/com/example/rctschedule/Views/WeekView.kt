@@ -1,41 +1,49 @@
 package com.example.rctschedule.Views
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
+import androidx.glance.LocalSize
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.background
+import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
-import androidx.glance.layout.padding
 import androidx.glance.layout.width
-import androidx.glance.layout.wrapContentHeight
-import androidx.glance.text.Text
-import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Data.ExcelCell
-import com.example.rctschedule.Model.ScheduleDayData
 import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.R
 import com.example.rctschedule.ScheduleTheme.MyExcelAppTheme
 import com.example.rctschedule.ScheduleTheme.ScheduleTheme
-import com.example.rctschedule.TransformExcelColumn
 import com.example.rctschedule.TransformExcelRow
 import com.example.rctschedule.TransformExcelDayTable
 import com.example.rctschedule.ViewModels.ContentState
-import com.example.rctschedule.ViewModels.ScheduleUiState
 import com.example.rctschedule.Views.Figures.SurfaceText
-import java.text.SimpleDateFormat
+import com.example.rctschedule.Views.Figures.getLocalFontSize
+import com.example.rctschedule.Views.WeekTableCalculation.CalculatedCell
+import com.example.rctschedule.Views.WeekTableCalculation.ScheduleLayoutCalculator
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+
+object TableLayoutConfig {
+    val NumColumnWidth = 25.dp
+    val TimeColumnWidth = 50.dp
+    val RoomColumnWidth = 50.dp
+    val ColumnSpacing = 4.dp
+    val CellRowSpacing = 4.dp
+    val RowVerticalPadding = 8.dp
+    val WidgetHorizontalPadding = (2*4).dp
+}
 
 interface GlanceView{
     @Composable
@@ -97,63 +105,76 @@ class WeekView(val state: ContentState) : GlanceView {
     }
 
     @Composable
-    fun RowView(c: TransformExcelRow)
-    {
-        Row(modifier = GlanceModifier
-            .fillMaxWidth()
-            .wrapContentHeight())
-        {
-            c.columns.forEachIndexed { index, message ->
-                when (index) {
-                    0 -> ColumnView(message, GlanceModifier.width(25.dp))
-                    2 -> ColumnView(message, GlanceModifier.defaultWeight())
-                    else -> ColumnView(message, GlanceModifier.width(50.dp))
+    fun RowView(c: TransformExcelRow) {
+        val size = LocalSize.current
+        val context = LocalContext.current
+        val actualFontSize = getLocalFontSize()
+
+        val layoutCalculator =remember { ScheduleLayoutCalculator(context)}
+        val rowLayout =remember(c, size.width, actualFontSize) {
+            layoutCalculator.calculateRowLayout(c, size.width, actualFontSize)
+        }
+
+
+        Row(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .height(rowLayout.height)
+        ) {
+            rowLayout.columns.forEachIndexed { index, column ->
+                ColumnView(
+                    GlanceModifier.width(column.width).fillMaxHeight(),
+                    index != 3,
+                    actualFontSize,
+                    column.cells)
+
+                if (index < rowLayout.columns.size - 1) {
+                    Spacer(modifier = GlanceModifier.width(TableLayoutConfig.ColumnSpacing))
                 }
-
-                if(index < c.columns.size-1)
-                    Spacer(modifier = GlanceModifier.width(4.dp))
             }
         }
     }
 
     @Composable
-    fun ColumnView(c: TransformExcelColumn, modifier: GlanceModifier = GlanceModifier)
-    {
-        Column(modifier.fillMaxHeight()){
-            c.rows.forEachIndexed { index, message ->
-                CellView(message, GlanceModifier
-                    .defaultWeight())
+    fun ColumnView(modifier: GlanceModifier, useEqualCellSizes: Boolean, fontSize: Float, message: List<CalculatedCell>){
+        Column(modifier = modifier) {
+            message.forEachIndexed { rowIndex, cell ->
+                val isLast = rowIndex == message.size - 1
 
+                val modifier = if(isLast || useEqualCellSizes)
+                    GlanceModifier.defaultWeight()
+                else GlanceModifier
+                    .height(cell.height.dp)
 
-                if(index < c.rows.size-1)
-                    Spacer(modifier = GlanceModifier.height(4.dp))
+                CellView(
+                    c = cell.cell,
+                    modifier = modifier.width(cell.width.dp),
+                    fontSize = fontSize.sp
+                )
+                if (rowIndex < message.size - 1) {
+                    Spacer(modifier = GlanceModifier.height(TableLayoutConfig.CellRowSpacing))
+                }
             }
         }
     }
 
     @Composable
-    fun CellView(c: ExcelCell, modifier: GlanceModifier = GlanceModifier)
-    {
-        val background =
-            ScheduleTheme.current.getMappedColor(
-                c.rgb,
-                GlanceTheme.colors.surfaceVariant)
-
-
-        Column(modifier
-            .fillMaxWidth()
-            .padding(2.dp)
-            .background(background)
+    fun CellView(c: ExcelCell, modifier: GlanceModifier = GlanceModifier,  fontSize: TextUnit? = null) {
+        val background = ScheduleTheme.current.getMappedColor(
+            c.rgb,
+            GlanceTheme.colors.surfaceVariant
         )
-        {
-            //SurfaceText(text = "${c.isMerged}, ${c.colSpan}, ${c.rowSpan}")
-            SurfaceText(text = c.value)
-        }
-    }
 
-    fun parseExcelHexToComposeColor(hex: String): Color {
-        val colorLong = hex.removePrefix("#").toLong(16)
-        return Color(colorLong)
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .background(background),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SurfaceText(
+                text = c.value
+            )
+        }
     }
 }
 

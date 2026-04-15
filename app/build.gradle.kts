@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.rctschedule"
-        minSdk = 35
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -108,6 +108,8 @@ dependencies {
 
     testImplementation("io.mockk:mockk:1.13.8")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
 }
 
 dependencies {
