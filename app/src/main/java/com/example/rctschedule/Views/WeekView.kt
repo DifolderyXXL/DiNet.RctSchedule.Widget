@@ -172,7 +172,8 @@ class WeekView(val state: ContentState) : GlanceView {
             verticalAlignment = Alignment.CenterVertically
         ) {
             SurfaceText(
-                text = c.value
+                text = c.value,
+                fontSize = fontSize
             )
         }
     }

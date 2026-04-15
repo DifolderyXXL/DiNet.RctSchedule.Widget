@@ -7,6 +7,7 @@ import android.content.Context.CLIPBOARD_SERVICE
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -83,6 +84,21 @@ class MyAppWidget : GlanceAppWidget() {
                         .appWidgetBackground()
                         .round8dpBackground(GlanceTheme.colors.widgetBackground)
                 ) {
+
+                    /*val text = "ИЭ \n1ПГ/2ПГ чет/нечет\nст.пр. ШмарловскийВ.Н.\n\nJava\n1ПГ/2ПГ нечет/чет\nдоц. ЖевнякО.Г.\""
+                    val width = 100
+                    val fontSize = 14f
+
+                    val estimatedHeight = calculateTextHeight(text, width, fontSize, context)
+
+                    Log.e("Calc", "$estimatedHeight")
+                    Box(modifier = GlanceModifier.width(width.dp).height(estimatedHeight.dp).background(Color.Red)) {
+                        Text(
+                            text = text,
+                            style = TextStyle(fontSize = fontSize.sp)
+                        )
+                    }*/
+
                     Content(uiState, entryPoint)
                 }
             }
