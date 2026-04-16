@@ -36,9 +36,9 @@ import com.example.rctschedule.Views.WeekTableCalculation.ScheduleLayoutCalculat
 import java.time.format.DateTimeFormatter
 
 object TableLayoutConfig {
-    val NumColumnWidth = 25.dp
-    val TimeColumnWidth = 50.dp
-    val RoomColumnWidth = 50.dp
+    val NumColumnWidth = 20.dp
+    val TimeColumnWidth = 45.dp
+    val RoomColumnWidth = 40.dp
     val ColumnSpacing = 4.dp
     val CellRowSpacing = 4.dp
     val RowVerticalPadding = 8.dp

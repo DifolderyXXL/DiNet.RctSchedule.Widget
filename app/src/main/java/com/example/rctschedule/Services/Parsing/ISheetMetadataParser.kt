@@ -13,7 +13,7 @@ interface ISheetMetadataParser{
 }
 
 class RctSheetMetadataParser @Inject constructor() : ISheetMetadataParser{
-    private val tableNameRegular = Regex("(?<fromDate>\\d*.\\d*)-(?<toDate>\\d*.\\d*)\\s*\\((?<weekNumber>\\d*).*\\)")
+    private val tableNameRegular = Regex("\\D*(?<fromDate>\\d*.\\d*)[^-]*-\\D*(?<toDate>\\d{2}.\\d{2})\\s*\\D*(?<weekNumber>\\d*)")
 
     override fun parse(sheet: Sheet): ScheduleMeta {
 
