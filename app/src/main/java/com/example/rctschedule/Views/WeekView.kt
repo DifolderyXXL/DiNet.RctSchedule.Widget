@@ -29,6 +29,7 @@ import com.example.rctschedule.ScheduleTheme.ScheduleTheme
 import com.example.rctschedule.TransformExcelRow
 import com.example.rctschedule.TransformExcelDayTable
 import com.example.rctschedule.ViewModels.ContentState
+import com.example.rctschedule.ViewModels.Targeted.ContentViewModel
 import com.example.rctschedule.Views.Figures.SurfaceText
 import com.example.rctschedule.Views.Figures.getLocalFontSize
 import com.example.rctschedule.Views.WeekTableCalculation.CalculatedCell
@@ -50,17 +51,21 @@ interface GlanceView{
     fun ComposableDraw(modifier: GlanceModifier)
 }
 
-class WeekView(val state: ContentState) : GlanceView {
+class WeekView(val state: ContentViewModel) : GlanceView {
 
     @Composable
     override fun ComposableDraw(modifier: GlanceModifier) {
 
         Column(modifier)
         {
+/*
             if(state.displayData != null) {
                 Header(state.displayData.week.meta, state.course, state.group)
                 TableView(state.displayData.day.weekTable)
             }
+*/
+
+            TableView(state.dayTable)
 
             Spacer(modifier = GlanceModifier.height(20.dp))
         }

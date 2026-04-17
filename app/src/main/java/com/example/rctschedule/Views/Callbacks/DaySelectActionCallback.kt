@@ -29,8 +29,14 @@ class DaySelectActionCallback : ActionCallback {
         val day = parameters[DAY_KEY] ?: return
 
         withContext(Dispatchers.IO) {
-            ep.getSelectDisplayUseCase()(selectedDayOfWeek = day)
+            val appSettings = ep.getGetAppSettingsUseCase()()
+            val schedule = ep.getGetScheduleUseCase()(appSettings.selectedCourse, appSettings.selectedGroup)
 
+            schedule.onSuccess {
+                ep.getSelectDisplayUseCase()(
+                    schedule = it,
+                    selectedDayOfWeek = day)
+            }
             ep.getGroupToggleRepository().set(ToggleData.Default)
         }
 

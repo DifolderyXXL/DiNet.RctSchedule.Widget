@@ -4,6 +4,7 @@ import com.example.rctschedule.Data.primitives.DateRange
 import com.example.rctschedule.Data.primitives.Helpers.DateRangeHelper
 import com.example.rctschedule.TransformExcelDayTable
 import com.example.rctschedule.TransformExcelWeek
+import kotlinx.serialization.Serializable
 import java.time.DayOfWeek
 import java.time.LocalDate
 

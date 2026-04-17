@@ -1,60 +1,74 @@
 package com.example.rctschedule.ViewModels.Targeted
 
 import com.example.rctschedule.Data.primitives.DateRange
+import com.example.rctschedule.Model.Lce
+import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.TransformExcelDayTable
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import java.time.DayOfWeek
 
+@Serializable
 sealed interface WidgetState{
-    data class CourseSelectionState(
-        val courseSelectionViewModel: CourseSelectionViewModel
-    ) : WidgetState
+    @Serializable
+    data object Loading : WidgetState
 
-    data class GroupSelectionState(
+    @Serializable
+    data class Error(val error: String) : WidgetState
+
+    @Serializable
+    data class ContentState(
         val courseSelectionViewModel: CourseSelectionViewModel,
         val groupSelectionViewModel: GroupSelectionViewModel,
-    ) : WidgetState
-
-    data class ContentState(
-        val widgetViewModel: WidgetViewModel
+        val widgetViewModel: Lce<WidgetViewModel>
     ) : WidgetState
 }
 
+@Serializable
 data class WidgetViewModel(
-    val courseSelectionViewModel: CourseSelectionViewModel,
-    val groupSelectionViewModel: GroupSelectionViewModel,
     val daySelectionViewModel: DaySelectionViewModel,
+    val weekSelectionViewModel: WeekSelectionViewModel,
     val metaViewModel: MetaViewModel,
-    val contentViewModel: ContentViewModel,
-    val weekSelectionViewModel: WeekSelectionViewModel
+    val contentViewModel: ContentViewModel
 )
 
 
+@Serializable
 data class GroupSelectionViewModel(
     val available: List<Int>,
-    val selected: Int?
+    val selected: Int
 )
 
+@Serializable
 data class DaySelectionViewModel(
     val available: List<DayOfWeek>,
-    val selected: DayOfWeek?
+    val selected: DayOfWeek,
+    val isCurrent: Boolean
 )
 
+@Serializable
 data class WeekSelectionViewModel(
-    val available: List<Int>,
-    val selected: Int?
+    @Contextual val available: List<ScheduleMeta>,
+    val selected: Int,
+    val isCurrent: Boolean
 )
 
+@Serializable
 data class MetaViewModel(
     val group: Int,
     val week: Int,
-    val dateRange: DateRange
+    @Contextual val dateRange: DateRange
 )
 
+@Serializable
 data class ContentViewModel(
-    val dayTable: TransformExcelDayTable
+    @Contextual val dayTable: TransformExcelDayTable,
+    val updateTimestamp: Long
 )
 
+@Serializable
 data class CourseSelectionViewModel(
+    val available: List<Int>,
     val course: Int
 )
 

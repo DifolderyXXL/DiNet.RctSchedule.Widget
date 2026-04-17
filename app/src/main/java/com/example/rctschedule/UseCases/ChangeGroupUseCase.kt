@@ -1,7 +1,6 @@
 package com.example.rctschedule.UseCases
 
 import com.example.rctschedule.Services.Repositories.ApplicationSettingsRepository
-import com.example.rctschedule.Services.Repositories.ScheduleDataRepository
 import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -9,7 +8,6 @@ import javax.inject.Singleton
 @Singleton
 class ChangeGroupUseCase @Inject constructor(
     private val appSettingsRepository: ApplicationSettingsRepository,
-    private val scheduleRepository: ScheduleDataRepository
 ) {
 
     suspend fun changeGroup(newGroupIndex: Int) {
@@ -17,8 +15,6 @@ class ChangeGroupUseCase @Inject constructor(
 
         appSettingsRepository.set(
             ApplicationSettings(bef.selectedCourse, newGroupIndex))
-
-        scheduleRepository.loadSchedule(forceUpdate = false)
     }
 }
 

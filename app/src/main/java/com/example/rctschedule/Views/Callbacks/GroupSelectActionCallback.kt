@@ -31,9 +31,6 @@ class GroupSelectActionCallback : ActionCallback {
             val useCase = ep.getChangeGroupUseCase()
 
             useCase.changeGroup(groupId)
-
-            ep.getScheduleDataRepository()
-                .loadSchedule(forceUpdate = false)
         }
 
         MyAppWidget().update(context, glanceId)
@@ -63,9 +60,6 @@ class CourseSelectActionCallback : ActionCallback {
             val useCase = ep.getChangeCourseUseCase()
 
             useCase.changeCourse(course)
-
-            ep.getScheduleDataRepository()
-                .loadSchedule(forceUpdate = false)
         }
 
         MyAppWidget().update(context, glanceId)

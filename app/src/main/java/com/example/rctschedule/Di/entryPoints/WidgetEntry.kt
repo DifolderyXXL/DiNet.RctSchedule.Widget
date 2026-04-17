@@ -4,14 +4,13 @@ import android.content.Context
 import com.example.rctschedule.Services.Parsing.ISheetRegularContextProvider
 import com.example.rctschedule.Services.Repositories.ApplicationSettingsRepository
 import com.example.rctschedule.Services.Repositories.GroupToggleRepository
-import com.example.rctschedule.Services.Repositories.ScheduleDataRepository
 import com.example.rctschedule.UseCases.ChangeCourseUseCase
 import com.example.rctschedule.UseCases.ChangeGroupUseCase
 import com.example.rctschedule.UseCases.GetAppSettingsUseCase
 import com.example.rctschedule.UseCases.SelectDisplayUseCase
+import com.example.rctschedule.UseCases.schedule.GetScheduleUseCase
 import com.example.rctschedule.ViewModels.DaySelectionPresenter
 import com.example.rctschedule.ViewModels.WeekSelectionPresenter
-import com.example.rctschedule.Views.ScheduleWidgetLoader
 import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
@@ -23,7 +22,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 interface WidgetEntryPoint {
 
-    fun getScheduleDataRepository(): ScheduleDataRepository
     fun getAppSettingsRepository(): ApplicationSettingsRepository
     fun getChangeGroupUseCase(): ChangeGroupUseCase
     fun getChangeCourseUseCase(): ChangeCourseUseCase
@@ -34,9 +32,8 @@ interface WidgetEntryPoint {
     fun getDaySelectionPresenter(): DaySelectionPresenter
     fun getWeekSelectionPresenter(): WeekSelectionPresenter
 
-    fun getScheduleWidgetLoader(): ScheduleWidgetLoader
-
     fun getSelectDisplayUseCase() : SelectDisplayUseCase
+    fun getGetScheduleUseCase() : GetScheduleUseCase
 }
 
 @Singleton

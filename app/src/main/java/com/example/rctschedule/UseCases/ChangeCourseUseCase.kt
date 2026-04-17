@@ -2,7 +2,6 @@ package com.example.rctschedule.UseCases
 
 import com.example.rctschedule.Services.Parsing.ISheetRegularContextProvider
 import com.example.rctschedule.Services.Repositories.ApplicationSettingsRepository
-import com.example.rctschedule.Services.Repositories.ScheduleDataRepository
 import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -10,7 +9,6 @@ import javax.inject.Singleton
 @Singleton
 class ChangeCourseUseCase @Inject constructor(
     private val appSettingsRepository: ApplicationSettingsRepository,
-    private val scheduleRepository: ScheduleDataRepository,
     private val contextProvider: ISheetRegularContextProvider
 ) {
 
@@ -30,7 +28,5 @@ class ChangeCourseUseCase @Inject constructor(
 
         val settings = ApplicationSettings(selectedCourse, group)
         appSettingsRepository.set(settings)
-
-        scheduleRepository.loadSchedule(forceUpdate = false)
     }
 }

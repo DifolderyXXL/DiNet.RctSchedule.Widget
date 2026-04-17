@@ -25,7 +25,12 @@ class WeekSelectActionCallback : ActionCallback {
         val ep = WidgetEntry.get(context.applicationContext)
 
         withContext(Dispatchers.IO) {
-            ep.getSelectDisplayUseCase()(selectedWeekNumber = parameter)
+            val appSettings = ep.getGetAppSettingsUseCase()()
+            val schedule = ep.getGetScheduleUseCase()(appSettings.selectedCourse, appSettings.selectedGroup)
+
+            schedule.onSuccess {
+                ep.getSelectDisplayUseCase()(schedule=it, selectedWeekNumber = parameter)
+            }
         }
 
         updateAndCloseMenu(context, ep.getGroupToggleRepository())
