@@ -1,6 +1,6 @@
-package com.example.rctschedule.Helpers
+package com.example.rctschedule.Data.primitives.Helpers
 
-import com.example.rctschedule.Model.DateRange
+import com.example.rctschedule.Data.primitives.DateRange
 import java.time.LocalDate
 
 class DateRangeHelper {

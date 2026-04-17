@@ -1,7 +1,7 @@
 package com.example.rctschedule.Model
 
-import com.example.rctschedule.Data.ExcelTable
-import com.example.rctschedule.Helpers.DateRangeHelper
+import com.example.rctschedule.Data.primitives.DateRange
+import com.example.rctschedule.Data.primitives.Helpers.DateRangeHelper
 import com.example.rctschedule.TransformExcelDayTable
 import com.example.rctschedule.TransformExcelWeek
 import java.time.DayOfWeek
@@ -46,23 +46,7 @@ data class ScheduleGroupWeeksData(
     }
 }
 
-data class GroupExcelWeeksDTO(
-    val weeks: List<GroupExcelTableDTO>,
-    val group: Int
-){
-    constructor() :this(emptyList<GroupExcelTableDTO>(), 0){}
-}
-
-data class GroupExcelTableDTO(
-    val table: ExcelTable,
-    val meta: ScheduleMeta
-){
-    constructor() : this(ExcelTable(), ScheduleMeta()){}
-}
-
 data class ScheduleMeta(
-    val dateRange: DateRange,
-    val weekNumber: Int
-){
-    constructor() :this(DateRange(), 0){}
-}
+    val dateRange: DateRange = DateRange(),
+    val weekNumber: Int = 0
+)

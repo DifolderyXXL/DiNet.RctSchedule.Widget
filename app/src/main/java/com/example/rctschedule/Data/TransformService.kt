@@ -1,7 +1,7 @@
 package com.example.rctschedule.Data
 
 import com.example.rctschedule.Model.ScheduleMeta
-import com.example.rctschedule.Model.GroupExcelWeeksDTO
+import com.example.rctschedule.Data.dto.GroupExcelWeeksDTO
 import com.example.rctschedule.Model.ScheduleGroupWeeksData
 import com.example.rctschedule.Model.ScheduleWeekData
 import com.example.rctschedule.TransformWeek

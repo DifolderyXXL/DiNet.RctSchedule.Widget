@@ -1,7 +1,7 @@
 package com.example.rctschedule.DomainTesting
 
-import com.example.rctschedule.Helpers.DateRangeHelper
-import com.example.rctschedule.Model.DateRange
+import com.example.rctschedule.Data.primitives.Helpers.DateRangeHelper
+import com.example.rctschedule.Data.primitives.DateRange
 import org.junit.Assert
 import org.junit.Test
 import java.time.LocalDate

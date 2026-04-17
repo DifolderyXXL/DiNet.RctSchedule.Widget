@@ -1,8 +1,7 @@
 package com.example.rctschedule.dao
 
 import androidx.room.TypeConverter
-import com.example.rctschedule.Model.GroupExcelWeeksDTO
-import com.google.gson.Gson
+import com.example.rctschedule.Data.dto.GroupExcelWeeksDTO
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer

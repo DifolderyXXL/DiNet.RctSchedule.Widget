@@ -1,6 +1,6 @@
 package com.example.rctschedule.ViewModels.Targeted
 
-import com.example.rctschedule.Model.DateRange
+import com.example.rctschedule.Data.primitives.DateRange
 import com.example.rctschedule.TransformExcelDayTable
 import java.time.DayOfWeek
 

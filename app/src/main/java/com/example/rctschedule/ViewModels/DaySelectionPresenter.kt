@@ -1,6 +1,6 @@
 package com.example.rctschedule.ViewModels
 
-import com.example.rctschedule.Helpers.DateRangeHelper
+import com.example.rctschedule.Data.primitives.Helpers.DateRangeHelper
 import com.example.rctschedule.Services.Time.TimeProvider
 import java.time.DayOfWeek
 import javax.inject.Inject

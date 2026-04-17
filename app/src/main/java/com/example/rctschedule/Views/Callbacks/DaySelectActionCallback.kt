@@ -1,12 +1,11 @@
 package com.example.rctschedule.Views.Callbacks
 
 import android.content.Context
-import android.util.Log
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.updateAll
-import com.example.rctschedule.Model.WidgetEntry
+import com.example.rctschedule.Di.entryPoints.WidgetEntry
 import com.example.rctschedule.Services.Repositories.GroupToggleRepository
 import com.example.rctschedule.Services.Repositories.ToggleData
 import com.example.rctschedule.Views.MyAppWidget

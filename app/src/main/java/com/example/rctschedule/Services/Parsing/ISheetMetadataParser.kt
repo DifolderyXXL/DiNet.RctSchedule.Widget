@@ -1,6 +1,6 @@
 package com.example.rctschedule.Services.Parsing
 
-import com.example.rctschedule.Model.DateRange
+import com.example.rctschedule.Data.primitives.DateRange
 import com.example.rctschedule.Model.ScheduleMeta
 import org.apache.poi.ss.usermodel.Sheet
 import java.time.LocalDate

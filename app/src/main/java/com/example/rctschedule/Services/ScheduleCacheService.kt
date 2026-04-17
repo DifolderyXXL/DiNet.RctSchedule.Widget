@@ -1,49 +1,48 @@
 package com.example.rctschedule.Services
 
-import android.util.Log
 import com.example.rctschedule.Di.DatabaseDispatcher
 import javax.inject.Inject
-import com.example.rctschedule.Model.CacheEntry
-import com.example.rctschedule.Model.GroupExcelWeeksDTO
+import com.example.rctschedule.Data.dto.ScheduleDTO
+import com.example.rctschedule.Repositories.exceptions.ScheduleDoesNotExists
 import com.example.rctschedule.dao.AppDatabase
 import com.example.rctschedule.dao.GroupScheduleEntity
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 class ScheduleCacheService @Inject constructor(
-    @DatabaseDispatcher private val dbDispatcher : CoroutineDispatcher,
-    private val db: AppDatabase
+    private val db: AppDatabase,
+    @DatabaseDispatcher private val dbDispatcher : CoroutineDispatcher
 ) {
-    suspend fun save(course:Int, data: CacheEntry<GroupExcelWeeksDTO>)
+    suspend fun save(course:Int, group: Int, schedule: ScheduleDTO)
     = withContext(dbDispatcher) {
         val entity = GroupScheduleEntity(
             courseId = course,
-            groupId = data.data.group,
-            updateTime = data.timestamp,
-            weeksData = data.data
+            groupId = group,
+            schedule = schedule
         )
         db.scheduleDao().upsertSchedule(entity)
     }
 
-    suspend fun load(course: Int, group: Int) : CacheEntry<GroupExcelWeeksDTO>? {
-        var res : CacheEntry<GroupExcelWeeksDTO>? = null
-        try {
-
-            withContext(dbDispatcher)
-            {
+    suspend fun load(course: Int, group: Int) : Result<ScheduleDTO> {
+        return withContext(dbDispatcher)
+        {
+            try {
                 val result = db.scheduleDao().loadById(course, group)
 
                 if (!result.isEmpty()) {
                     val target = result.first()
 
-                    res = CacheEntry(target.weeksData, target.updateTime)
+                    return@withContext Result.success(target.schedule)
                 }
             }
+            catch (e: Exception){
+                e.printStackTrace()
+
+                return@withContext Result.failure(e)
+            }
+
+            Result.failure(ScheduleDoesNotExists())
         }
-        catch (e: Exception){
-            e.printStackTrace()
-        }
-        return res
     }
 }
 
