@@ -2,6 +2,7 @@ package com.example.rctschedule.Data
 
 import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.Data.dto.GroupExcelWeeksDTO
+import com.example.rctschedule.Data.dto.ScheduleDTO
 import com.example.rctschedule.Model.ScheduleGroupWeeksData
 import com.example.rctschedule.Model.ScheduleWeekData
 import com.example.rctschedule.TransformWeek
@@ -16,15 +17,16 @@ class TransformService @Inject constructor(private val config: TransformConfig){
         )
     }
 
-    fun Transform(table: GroupExcelWeeksDTO) : ScheduleGroupWeeksData
+    fun Transform(table: ScheduleDTO) : ScheduleGroupWeeksData
     {
         return ScheduleGroupWeeksData(
-            table.weeks.map{ e->
+            table.schedule.weeks.map{ e->
                 ScheduleWeekData(
                     TransformWeek(e.table, config.subjectCountingColumn),
                     e.meta)
             },
-            table.group
+            table.schedule.group,
+            table.updateTimeStamp
         )
     }
 }

@@ -19,7 +19,8 @@ data class ScheduleWeekData(
 
 data class ScheduleGroupWeeksData(
     val weeks: List<ScheduleWeekData>,
-    val group: Int
+    val group: Int,
+    val updateTimestamp: Long
 ){
     public fun getWeek(weekNumber: Int) : ScheduleWeekData?
     {

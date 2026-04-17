@@ -6,14 +6,17 @@ import androidx.glance.appwidget.updateAll
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.rctschedule.Repositories.ScheduleUpdater
 import com.example.rctschedule.Services.Repositories.ScheduleDataRepository
+import com.example.rctschedule.UseCases.GetAppSettingsUseCase
 import com.example.rctschedule.Views.MyAppWidget
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
 @HiltWorker
 class UpdateScheduleWorker @AssistedInject constructor(
-    val scheduleRepository: ScheduleDataRepository,
+    val scheduleUpdater: ScheduleUpdater,
+    val appSettingsUseCase: GetAppSettingsUseCase,
     @Assisted val context: Context,
     @Assisted parameters: WorkerParameters
 )
@@ -28,7 +31,8 @@ class UpdateScheduleWorker @AssistedInject constructor(
                 return Result.retry()
             }
 
-            scheduleRepository.loadSchedule(true)
+            val settings = appSettingsUseCase()
+            scheduleUpdater.refreshFromServer(settings.selectedCourse, settings.selectedGroup)
 
             MyAppWidget().updateAll(context)
         }

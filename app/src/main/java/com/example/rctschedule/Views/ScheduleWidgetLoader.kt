@@ -1,18 +1,13 @@
 package com.example.rctschedule.Views
 
-import android.util.Log
-import androidx.constraintlayout.solver.Cache
 import com.example.rctschedule.Model.CacheEntry
 import com.example.rctschedule.Model.ScheduleGroupWeeksData
 import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.Services.Repositories.ApplicationSettingsRepository
 import com.example.rctschedule.Services.Repositories.GroupToggleRepository
-import com.example.rctschedule.Services.Repositories.Lce
-import com.example.rctschedule.Services.Repositories.ScheduleDataRepository
-import com.example.rctschedule.Services.Repositories.States.ApplicationSettings
+import com.example.rctschedule.Model.Lce
 import com.example.rctschedule.Services.Repositories.States.WidgetDisplayMode
 import com.example.rctschedule.Services.Repositories.WidgetDisplayModeRepository
-import com.example.rctschedule.TransformExcelDayTable
 import com.example.rctschedule.UseCases.GetAppSettingsUseCase
 import com.example.rctschedule.UseCases.GetWidgetDisplayDataUseCase
 import com.example.rctschedule.ViewModels.ContentState
@@ -21,11 +16,7 @@ import com.example.rctschedule.ViewModels.ScheduleUiState
 import com.example.rctschedule.ViewModels.WeekSelectState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onEach
 import java.time.DayOfWeek
 import javax.inject.Inject
 class ScheduleWidgetLoader @Inject constructor(

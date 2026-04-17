@@ -20,6 +20,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Di.entryPoints.WidgetEntry
 import com.example.rctschedule.Di.entryPoints.WidgetEntryPoint
+import com.example.rctschedule.Model.Lce
 import com.example.rctschedule.R
 import com.example.rctschedule.Services.Repositories.*
 import com.example.rctschedule.ViewModels.ScheduleUiState
