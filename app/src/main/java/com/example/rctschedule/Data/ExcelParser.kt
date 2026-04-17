@@ -1,8 +1,9 @@
 package com.example.rctschedule.Data
 
-import com.example.rctschedule.Data.primitives.DateRange
-import com.example.rctschedule.Model.ScheduleMeta
+import kotlinx.serialization.Serializable
 
+
+@Serializable
 data class ExcelCell(
     val value: String = "",
     val rowSpan: Int = 1,

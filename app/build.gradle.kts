@@ -122,5 +122,7 @@ dependencies {
     implementation(libs.androidx.runner)
     implementation("androidx.compose.ui:ui-tooling-preview:1.10.6")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.9.0")
 }
 

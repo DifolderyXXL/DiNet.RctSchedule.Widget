@@ -6,7 +6,7 @@ import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import com.example.rctschedule.Di.entryPoints.WidgetEntry
-import com.example.rctschedule.Views.MyAppWidget
+import com.example.rctschedule.Workers.InitializeWidgetWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -33,7 +33,7 @@ class GroupSelectActionCallback : ActionCallback {
             useCase.changeGroup(groupId)
         }
 
-        MyAppWidget().update(context, glanceId)
+        InitializeWidgetWorker.enqueue(context.applicationContext)
 
         Log.e("GroupSelectActionCallback", "Action Completed")
     }
@@ -62,7 +62,7 @@ class CourseSelectActionCallback : ActionCallback {
             useCase.changeCourse(course)
         }
 
-        MyAppWidget().update(context, glanceId)
+        InitializeWidgetWorker.enqueue(context.applicationContext)
 
         Log.e("GroupSelectActionCallback", "Action Completed")
     }

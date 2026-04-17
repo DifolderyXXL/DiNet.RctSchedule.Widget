@@ -1,10 +1,8 @@
 package com.example.rctschedule.ViewModels.Targeted
 
 import com.example.rctschedule.Data.primitives.DateRange
-import com.example.rctschedule.Model.Lce
 import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.TransformExcelDayTable
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.time.DayOfWeek
 
@@ -20,9 +18,27 @@ sealed interface WidgetState{
     data class ContentState(
         val courseSelectionViewModel: CourseSelectionViewModel,
         val groupSelectionViewModel: GroupSelectionViewModel,
-        val widgetViewModel: Lce<WidgetViewModel>
+        val widgetViewModel: WidgetLce
     ) : WidgetState
 }
+
+@Serializable
+sealed class WidgetLce {
+    @Serializable data object Loading : WidgetLce()
+    @Serializable data class Content(val data: WidgetViewModel) : WidgetLce()
+    @Serializable data class Error(
+        val message: String,
+        val type: String,
+        val stacktrace: String? = null
+    ) : WidgetLce(){
+        constructor(e: Throwable) : this(
+            message = e.message ?: "Unknown",
+            type = e.javaClass.simpleName,
+            stacktrace = e.stackTraceToString()
+        )
+    }
+}
+
 
 @Serializable
 data class WidgetViewModel(
@@ -48,7 +64,7 @@ data class DaySelectionViewModel(
 
 @Serializable
 data class WeekSelectionViewModel(
-    @Contextual val available: List<ScheduleMeta>,
+    val available: List<ScheduleMeta>,
     val selected: Int,
     val isCurrent: Boolean
 )
@@ -57,12 +73,12 @@ data class WeekSelectionViewModel(
 data class MetaViewModel(
     val group: Int,
     val week: Int,
-    @Contextual val dateRange: DateRange
+    val dateRange: DateRange
 )
 
 @Serializable
 data class ContentViewModel(
-    @Contextual val dayTable: TransformExcelDayTable,
+    val dayTable: TransformExcelDayTable,
     val updateTimestamp: Long
 )
 

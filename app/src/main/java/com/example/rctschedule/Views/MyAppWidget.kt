@@ -1,59 +1,43 @@
 package com.example.rctschedule.Views
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
-import android.content.Context.CLIPBOARD_SERVICE
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
-import androidx.glance.*
-import androidx.glance.action.actionParametersOf
-import androidx.glance.action.clickable
-import androidx.glance.appwidget.*
-import androidx.glance.appwidget.action.actionRunCallback
-import androidx.glance.layout.*
+import androidx.glance.GlanceId
+import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
+import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.appWidgetBackground
+import androidx.glance.appwidget.provideContent
+import androidx.glance.currentState
+import androidx.glance.layout.Column
+import androidx.glance.layout.fillMaxSize
 import androidx.glance.state.GlanceStateDefinition
-import androidx.glance.text.Text
-import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Di.entryPoints.WidgetEntry
-import com.example.rctschedule.Di.entryPoints.WidgetEntryPoint
-import com.example.rctschedule.Model.Lce
-import com.example.rctschedule.R
-import com.example.rctschedule.Services.Repositories.*
-import com.example.rctschedule.ViewModels.ScheduleUiState
+import com.example.rctschedule.Services.Repositories.createJsonSerializer
 import com.example.rctschedule.ViewModels.Targeted.WidgetState
-import com.example.rctschedule.Views.Callbacks.*
-import com.example.rctschedule.Views.Figures.HorizontalSpacer
-import com.example.rctschedule.Views.Figures.SurfaceText
-import com.example.rctschedule.Views.Figures.VerticalSpacer
-import com.example.rctschedule.Views.Figures.content_round
-import com.example.rctschedule.Views.Figures.round10dpBackground
 import com.example.rctschedule.Views.Figures.round8dpBackground
 import com.example.rctschedule.Views.ViewStates.ContentStateView
 import com.example.rctschedule.Views.ViewStates.ErrorStateView
 import com.example.rctschedule.Views.ViewStates.LoadingStateView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import java.io.File
-import java.util.Date
 
 
 class ScheduleGlanceStateDefinition : GlanceStateDefinition<WidgetState>{
     private val DATA_STORE_PREFIX = "schedule_widget_state_"
+
 
     override suspend fun getDataStore(
         context: Context,
         fileKey: String
     ): DataStore<WidgetState> {
         return DataStoreFactory.create(
-            createJsonSerializer<WidgetState>(WidgetState.Loading),
+            createJsonSerializer<WidgetState>(
+                WidgetState.Loading,
+                json = Json),
             produceFile = {getLocation(context, fileKey)}
         )
     }
@@ -81,12 +65,6 @@ class MyAppWidget : GlanceAppWidget() {
 
         val entryPoint = WidgetEntry.get(context)
 
-
-        /*CoroutineScope(Dispatchers.IO).launch {
-            entryPoint.getScheduleDataRepository().loadSchedule(false)
-        }*/
-
-
         provideContent {
             GlanceTheme()
             {
@@ -94,18 +72,16 @@ class MyAppWidget : GlanceAppWidget() {
 
                 Column(
                     GlanceModifier
-                        .fillMaxHeight()
+                        .fillMaxSize()
                         .appWidgetBackground()
                         .round8dpBackground(GlanceTheme.colors.widgetBackground)
                 ) {
-                    //Content(uiState, entryPoint)
 
                     when(state){
                         is WidgetState.ContentState -> ContentStateView(state, entryPoint)
                         is WidgetState.Error -> ErrorStateView(state.error)
                         WidgetState.Loading -> LoadingStateView()
                     }
-
                 }
             }
         }

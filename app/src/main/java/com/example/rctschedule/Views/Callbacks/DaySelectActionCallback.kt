@@ -10,6 +10,7 @@ import com.example.rctschedule.Services.Repositories.GroupToggleRepository
 import com.example.rctschedule.Services.Repositories.ToggleData
 import com.example.rctschedule.Views.MyAppWidget
 import com.example.rctschedule.Views.SelectDayButtonType
+import com.example.rctschedule.Workers.InitializeWidgetWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.DayOfWeek
@@ -37,10 +38,10 @@ class DaySelectActionCallback : ActionCallback {
                     schedule = it,
                     selectedDayOfWeek = day)
             }
-            ep.getGroupToggleRepository().set(ToggleData.Default)
+            //ep.getGroupToggleRepository().set(ToggleData.Default)
         }
 
-        MyAppWidget().update(context, glanceId)
+        InitializeWidgetWorker.enqueue(context.applicationContext)
     }
 }
 

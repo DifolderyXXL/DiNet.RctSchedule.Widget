@@ -4,11 +4,9 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context.CLIPBOARD_SERVICE
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
@@ -30,24 +28,20 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
-import androidx.glance.preview.ExperimentalGlancePreviewApi
-import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Di.entryPoints.WidgetEntryPoint
-import com.example.rctschedule.Model.Lce
 import com.example.rctschedule.R
-import com.example.rctschedule.Services.Repositories.GroupToggleRepository
 import com.example.rctschedule.Services.Repositories.ToggleData
 import com.example.rctschedule.Services.Repositories.ToggleWindow
 import com.example.rctschedule.ViewModels.Targeted.CourseSelectionViewModel
 import com.example.rctschedule.ViewModels.Targeted.GroupSelectionViewModel
+import com.example.rctschedule.ViewModels.Targeted.WidgetLce
 import com.example.rctschedule.ViewModels.Targeted.WidgetState
 import com.example.rctschedule.ViewModels.Targeted.WidgetViewModel
 import com.example.rctschedule.Views.Callbacks.CourseSelectActionCallback
 import com.example.rctschedule.Views.Callbacks.GroupSelectActionCallback
-import com.example.rctschedule.Views.Callbacks.ToggleDropdownAction
 import com.example.rctschedule.Views.Callbacks.UpdateScheduleAction
 import com.example.rctschedule.Views.DaySelectionView
 import com.example.rctschedule.Views.Figures.HorizontalSpacer
@@ -62,10 +56,11 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Date
 
+
 @Composable
 fun WidgetViewModelView(viewModel: WidgetViewModel,
                         entryPoint: WidgetEntryPoint){
-    Column {
+    Column(GlanceModifier.fillMaxSize()){
         val day = entryPoint.getDaySelectionPresenter()
             .present(viewModel.weekSelectionViewModel, viewModel.daySelectionViewModel)
         DaySelectionView(day).ComposableDraw(GlanceModifier)
@@ -99,25 +94,24 @@ fun ContentStateView(contentState: WidgetState.ContentState,
 
             val context = LocalContext.current
             when(contentState.widgetViewModel){
-                is Lce.Content<WidgetViewModel> -> WidgetViewModelView(contentState.widgetViewModel.data, entryPoint)
-                is Lce.Error -> {
+                is WidgetLce.Content -> WidgetViewModelView(contentState.widgetViewModel.data, entryPoint)
+                is WidgetLce.Error -> {
                     SurfaceText(context.getString(R.string.error_loading_schedule))
-                    val error = contentState.widgetViewModel.throwable
+                    val error = "${contentState.widgetViewModel.type}: ${contentState.widgetViewModel.message}"
 
-                    if(error.message != null)
-                        SurfaceText("${error.message}")
+                    SurfaceText(error)
 
                     val stacktraceText = context.getString(R.string.copy_stacktrace)
                     SurfaceText(stacktraceText,
                         GlanceModifier.clickable {
 
                             val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText(stacktraceText, error.stackTraceToString())
+                            val clip = ClipData.newPlainText(stacktraceText, contentState.widgetViewModel.stacktrace)
 
                             clipboard.setPrimaryClip(clip)
                         })
                 }
-                Lce.Loading -> SurfaceText(context.getString(R.string.loading))
+                WidgetLce.Loading -> SurfaceText(context.getString(R.string.loading))
             }
         }
     }
@@ -139,7 +133,7 @@ private fun LastUpdateTime(lastUpdate: Date)
 }
 
 @Composable
-private fun UpdateStateHeader(state: Lce<*>)
+private fun UpdateStateHeader(state: WidgetLce)
 {
     Row(
         verticalAlignment = Alignment.CenterVertically){
@@ -147,9 +141,9 @@ private fun UpdateStateHeader(state: Lce<*>)
         val context = LocalContext.current
 
         val text = when(state) {
-            is Lce.Content -> (context.getString(R.string.schedule_lce_content))
-            is Lce.Loading -> (context.getString(R.string.schedule_lce_loading))
-            is Lce.Error -> (context.getString(R.string.schedule_lce_error))
+            is WidgetLce.Content -> (context.getString(R.string.schedule_lce_content))
+            is WidgetLce.Loading -> (context.getString(R.string.schedule_lce_loading))
+            is WidgetLce.Error -> (context.getString(R.string.schedule_lce_error))
         }
 
         Text(text,
@@ -172,23 +166,27 @@ private fun UpdateStateHeader(state: Lce<*>)
 fun GroupHeader(
     groupSelection: GroupSelectionViewModel,
     courseSelection: CourseSelectionViewModel,
-    lceState: Lce<*>) {
+    lceState: WidgetLce) {
 
-    val toggle by remember{mutableStateOf(ToggleData.Default)}
+    val toggle = remember{mutableStateOf(ToggleData.Default)}
 
     Column{
-        HeaderRow(courseSelection.course, groupSelection.selected, toggle, lceState)
+        HeaderRow(
+            courseSelection.course,
+            groupSelection.selected,
+            toggle,
+            lceState)
 
         ExpandableSelector(
             courseSelection.available,
             groupSelection.available,
-            toggle)
+            toggle.value)
         HorizontalSpacer()
     }
 }
 
 @Composable
-fun HeaderRow(course: Int, group: Int, state: ToggleData, lceState: Lce<*>){
+fun HeaderRow(course: Int, group: Int, state: MutableState<ToggleData>, lceState: WidgetLce){
     Row(GlanceModifier.fillMaxWidth()) {
         var backgroundGroup = GlanceTheme.colors.secondaryContainer
         var backgroundCourse = GlanceTheme.colors.secondaryContainer
@@ -196,8 +194,8 @@ fun HeaderRow(course: Int, group: Int, state: ToggleData, lceState: Lce<*>){
         var foregroundGroup = GlanceTheme.colors.onSecondaryContainer
         var foregroundCourse = GlanceTheme.colors.onSecondaryContainer
 
-        if(state.isExpanded)
-            when(state.window){
+        if(state.value.isExpanded)
+            when(state.value.window){
                 ToggleWindow.Groups -> {
                     backgroundGroup = GlanceTheme.colors.tertiary
                     foregroundGroup = GlanceTheme.colors.onTertiary
@@ -212,6 +210,7 @@ fun HeaderRow(course: Int, group: Int, state: ToggleData, lceState: Lce<*>){
         SelectionToggleButton("${context.getString(R.string.course)} $course",
             backgroundCourse,
             foregroundCourse,
+            state,
             ToggleWindow.Courses)
 
         VerticalSpacer()
@@ -219,6 +218,7 @@ fun HeaderRow(course: Int, group: Int, state: ToggleData, lceState: Lce<*>){
         SelectionToggleButton("${context.getString(R.string.group)} ${group + 1}",
             backgroundGroup,
             foregroundGroup,
+            state,
             ToggleWindow.Groups)
 
         Spacer(GlanceModifier.defaultWeight())
@@ -233,16 +233,23 @@ fun SelectionToggleButton(
     text: String,
     background: ColorProvider,
     foreground: ColorProvider,
-    toggleWindow: ToggleWindow)
+    state: MutableState<ToggleData>,
+    window: ToggleWindow)
 {
     Text(text,
         style = TextStyle(
             color = foreground),
-        modifier = GlanceModifier.clickable(
-            actionRunCallback<ToggleDropdownAction>(
-                actionParametersOf(ToggleDropdownAction.WINDOW_TOGGLE_KEY to toggleWindow)))
+        modifier = GlanceModifier
             .padding(5.dp, 2.dp)
-            .round10dpBackground(background))
+            .round10dpBackground(background)
+            .clickable{
+                val expanded = if(!state.value.isExpanded || state.value.window == window) !state.value.isExpanded else true
+                state.value = ToggleData(
+                    expanded,
+                    window)
+            })
+
+
 
 }
 

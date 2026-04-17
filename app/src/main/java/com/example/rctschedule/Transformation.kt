@@ -2,6 +2,7 @@ package com.example.rctschedule
 
 import com.example.rctschedule.Data.ExcelCell
 import com.example.rctschedule.Data.ExcelTable
+import kotlinx.serialization.Serializable
 import kotlin.math.max
 
 
@@ -129,20 +130,24 @@ public fun TransformWeek(table: ExcelTable, subjectCountingColumn: Int) : Transf
     return TransformExcelWeek(days)
 }
 
+@Serializable
 data class TransformExcelDayTable(
     val rows: List<TransformExcelRow> = emptyList()
 )
 
+@Serializable
 data class TransformExcelColumn(
     val width: Int,
     val rows: List<ExcelCell>
 )
 
+@Serializable
 data class TransformExcelRow(
     val height: Int,
     val columns: List<TransformExcelColumn>
 )
 
+@Serializable
 data class TransformExcelWeek(
     val days: List<TransformExcelDayTable>
 )

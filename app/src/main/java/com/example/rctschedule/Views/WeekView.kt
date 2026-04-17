@@ -26,9 +26,8 @@ import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.R
 import com.example.rctschedule.ScheduleTheme.MyExcelAppTheme
 import com.example.rctschedule.ScheduleTheme.ScheduleTheme
-import com.example.rctschedule.TransformExcelRow
 import com.example.rctschedule.TransformExcelDayTable
-import com.example.rctschedule.ViewModels.ContentState
+import com.example.rctschedule.TransformExcelRow
 import com.example.rctschedule.ViewModels.Targeted.ContentViewModel
 import com.example.rctschedule.Views.Figures.SurfaceText
 import com.example.rctschedule.Views.Figures.getLocalFontSize
@@ -58,12 +57,6 @@ class WeekView(val state: ContentViewModel) : GlanceView {
 
         Column(modifier)
         {
-/*
-            if(state.displayData != null) {
-                Header(state.displayData.week.meta, state.course, state.group)
-                TableView(state.displayData.day.weekTable)
-            }
-*/
 
             TableView(state.dayTable)
 

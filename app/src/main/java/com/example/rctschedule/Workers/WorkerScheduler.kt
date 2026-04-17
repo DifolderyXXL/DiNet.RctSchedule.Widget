@@ -28,7 +28,7 @@ class WorkerScheduler @Inject constructor(
         const val UPDATE_WORKER_FLEX_TIME_INTERVAL_MINUTES = 30L
     }
 
-    private val workManager by lazy { WorkManager.Companion.getInstance(context) }
+    public val workManager by lazy { WorkManager.Companion.getInstance(context) }
 
     fun getWidgetUpdateWorkerStatus() : List<WorkInfo>
     {
