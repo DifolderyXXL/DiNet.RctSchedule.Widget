@@ -33,13 +33,14 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Di.entryPoints.WidgetEntryPoint
 import com.example.rctschedule.R
-import com.example.rctschedule.Services.Repositories.ToggleData
-import com.example.rctschedule.Services.Repositories.ToggleWindow
+import com.example.rctschedule.Services.Repositories.States.ToggleData
+import com.example.rctschedule.Services.Repositories.States.ToggleWindow
 import com.example.rctschedule.ViewModels.Targeted.CourseSelectionViewModel
 import com.example.rctschedule.ViewModels.Targeted.GroupSelectionViewModel
 import com.example.rctschedule.ViewModels.Targeted.WidgetLce
 import com.example.rctschedule.ViewModels.Targeted.WidgetState
 import com.example.rctschedule.ViewModels.Targeted.WidgetViewModel
+import com.example.rctschedule.Views.Callbacks.CopyStacktraceActionCallback
 import com.example.rctschedule.Views.Callbacks.CourseSelectActionCallback
 import com.example.rctschedule.Views.Callbacks.GroupSelectActionCallback
 import com.example.rctschedule.Views.Callbacks.UpdateScheduleAction
@@ -79,7 +80,7 @@ fun WidgetViewModelView(viewModel: WidgetViewModel,
 }
 
 @Composable
-fun ContentStateView(contentState: WidgetState.ContentState,
+fun ContentStateView(contentState: WidgetState.Content,
                      entryPoint: WidgetEntryPoint){
     Box(modifier = GlanceModifier.fillMaxSize().padding(4.dp))
     {
@@ -89,29 +90,33 @@ fun ContentStateView(contentState: WidgetState.ContentState,
 
             GroupHeader(contentState.groupSelectionViewModel,
                 contentState.courseSelectionViewModel,
-                contentState.widgetViewModel)
+                contentState.widgetLceState)
 
 
             val context = LocalContext.current
-            when(contentState.widgetViewModel){
-                is WidgetLce.Content -> WidgetViewModelView(contentState.widgetViewModel.data, entryPoint)
-                is WidgetLce.Error -> {
-                    SurfaceText(context.getString(R.string.error_loading_schedule))
-                    val error = "${contentState.widgetViewModel.type}: ${contentState.widgetViewModel.message}"
+            if(contentState.lastValidData != null)
+                WidgetViewModelView(contentState.lastValidData, entryPoint)
+            else
+            {
+                when(val state = contentState.widgetLceState) {
+                    is WidgetLce.Loading -> SurfaceText(context.getString(R.string.schedule_lce_loading))
+                    is WidgetLce.Error -> {
+                        SurfaceText(context.getString(R.string.error_loading_schedule))
+                        val error = "${state.errType}: ${state.message}"
 
-                    SurfaceText(error)
+                        SurfaceText(error)
 
-                    val stacktraceText = context.getString(R.string.copy_stacktrace)
-                    SurfaceText(stacktraceText,
-                        GlanceModifier.clickable {
-
-                            val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText(stacktraceText, contentState.widgetViewModel.stacktrace)
-
-                            clipboard.setPrimaryClip(clip)
-                        })
+                        val stacktraceText = context.getString(R.string.copy_stacktrace)
+                        SurfaceText(stacktraceText,
+                            GlanceModifier.clickable(
+                                actionRunCallback<CopyStacktraceActionCallback>(
+                                    actionParametersOf(CopyStacktraceActionCallback.STACKTRACE_KEY to "${state.stacktrace}"))
+                            ))
+                    }
+                    else -> {
+                        SurfaceText("UNHANDLED")
+                    }
                 }
-                WidgetLce.Loading -> SurfaceText(context.getString(R.string.loading))
             }
         }
     }
@@ -149,7 +154,15 @@ private fun UpdateStateHeader(state: WidgetLce)
         Text(text,
             maxLines = 1,
         style = TextStyle(
-            color = GlanceTheme.colors.onSurface))
+            color = GlanceTheme.colors.onSurface),
+            modifier = GlanceModifier.clickable {
+                if(state is WidgetLce.Error){
+                    val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText(context.getString(R.string.copy_stacktrace), state.stacktrace)
+
+                    clipboard.setPrimaryClip(clip)
+                }
+            })
 
         Image(
             colorFilter = ColorFilter.tint(GlanceTheme.colors.secondary),

@@ -5,8 +5,10 @@ import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 
 import androidx.work.Configuration
+import com.example.rctschedule.ViewModels.Targeted.WidgetState
 import com.example.rctschedule.Workers.InitializeWidgetWorker
 import com.example.rctschedule.Workers.WorkerScheduler
+import com.example.rctschedule.Workers.updateMyAppWidgetState
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 

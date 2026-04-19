@@ -36,7 +36,7 @@ class ScheduleGlanceStateDefinition : GlanceStateDefinition<WidgetState>{
     ): DataStore<WidgetState> {
         return DataStoreFactory.create(
             createJsonSerializer<WidgetState>(
-                WidgetState.Loading,
+                WidgetState.Empty,
                 json = Json),
             produceFile = {getLocation(context, fileKey)}
         )
@@ -78,9 +78,8 @@ class MyAppWidget : GlanceAppWidget() {
                 ) {
 
                     when(state){
-                        is WidgetState.ContentState -> ContentStateView(state, entryPoint)
-                        is WidgetState.Error -> ErrorStateView(state.error)
-                        WidgetState.Loading -> LoadingStateView()
+                        is WidgetState.Content -> ContentStateView(state, entryPoint)
+                        WidgetState.Empty -> LoadingStateView()
                     }
                 }
             }

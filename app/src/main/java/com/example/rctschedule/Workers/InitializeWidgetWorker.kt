@@ -1,6 +1,7 @@
 package com.example.rctschedule.Workers
 
 import android.content.Context
+import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
@@ -12,10 +13,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.example.rctschedule.Data.primitives.Helpers.DateRangeHelper
 import com.example.rctschedule.Model.extensions.nextOnFailureAsync
 import com.example.rctschedule.Services.Parsing.ISheetRegularContextProvider
-import com.example.rctschedule.Services.Time.TimeProvider
+import com.example.rctschedule.Services.Time.TodayMetadataCompareService
 import com.example.rctschedule.UseCases.GetAppSettingsUseCase
 import com.example.rctschedule.UseCases.GetWidgetDisplayDataUseCase
 import com.example.rctschedule.UseCases.RefreshWidgetDisplayDataUseCase
@@ -44,7 +44,7 @@ class InitializeWidgetWorker @AssistedInject constructor(
 
     val sheetRegularContextProvider: ISheetRegularContextProvider,
 
-    val timeProvider: TimeProvider,
+    val todayCompareService: TodayMetadataCompareService,
     @Assisted val context: Context,
     @Assisted parameters: WorkerParameters
 ) : CoroutineWorker(context, parameters){
@@ -75,7 +75,6 @@ class InitializeWidgetWorker @AssistedInject constructor(
 
 
     override suspend fun doWork(): Result {
-
         val appSettings = getAppSettingsUseCase()
         val regularContext = sheetRegularContextProvider.get(appSettings.selectedCourse)
 
@@ -89,50 +88,55 @@ class InitializeWidgetWorker @AssistedInject constructor(
             selected = appSettings.selectedGroup
         )
 
-        val scheduleResult = getScheduleUseCase(appSettings.selectedCourse, appSettings.selectedGroup)
-
-        scheduleResult.onFailure {
-            val content = WidgetState.ContentState(
+        context.updateAllMyAppWidgetState {
+            WidgetState.Content(
                 courseSelection,
                 groupSelection,
-                WidgetLce.Error(it)
+                WidgetLce.Loading,
+                it.contentOrNull()?.lastValidData
             )
+        }
 
-            GlanceAppWidgetManager(context)
-                .getGlanceIds(MyAppWidget::class.java).forEach{ glanceId ->
-                    updateAppWidgetState(
-                        context = context,
-                        definition = ScheduleGlanceStateDefinition(),
-                        glanceId = glanceId,
-                        updateState = {
-                            content
-                        }
+        val scheduleResult = getScheduleUseCase(appSettings.selectedCourse, appSettings.selectedGroup)
+
+        scheduleResult.onFailure {throwable ->
+            context.updateAllMyAppWidgetState {
+                WidgetState.Content(
+                    courseSelection,
+                    groupSelection,
+                    WidgetLce.Error(throwable),
+                    it.contentOrNull()?.lastValidData
                     )
-                }
+            }
         }
 
         if(scheduleResult.isFailure) {
-            return Result.success()
+            return Result.failure()
         }
         val schedule = scheduleResult.getOrThrow()
 
-        val displayData = getWidgetDisplayDataUseCase(schedule)
+        val displayDataResult = getWidgetDisplayDataUseCase(schedule)
             .nextOnFailureAsync {
                 refreshWidgetDisplayDataUseCase(schedule)
-            }.getOrNull()
+            }.onFailure {throwable ->
+                context.updateAllMyAppWidgetState {
+                    WidgetState.Content(
+                        courseSelection,
+                        groupSelection,
+                        WidgetLce.Error(throwable),
+                        it.contentOrNull()?.lastValidData
+                    )
+                }
+            }
 
-        if(displayData == null)
+
+        if(displayDataResult.isFailure)
             return Result.failure()
 
+        val displayData = displayDataResult.getOrThrow()
+
+
         val meta = displayData.week.meta
-        val isCurrentWeek = DateRangeHelper.dateInRangeWithoutYear(
-            timeProvider.getCurrentDate(),
-            meta.dateRange
-        ) || (timeProvider.getCurrentDayOfWeek() == DayOfWeek.SUNDAY
-                && DateRangeHelper.dateInRangeWithoutYear(
-            timeProvider.getCurrentDate().minusDays(1),
-            meta.dateRange)
-                )
 
         val widgetViewModel = WidgetViewModel(
             daySelectionViewModel = DaySelectionViewModel(
@@ -140,12 +144,12 @@ class InitializeWidgetWorker @AssistedInject constructor(
                     DayOfWeek.of(i + 1)
                 },
                 selected = displayData.day.day,
-                isCurrent = timeProvider.getCurrentDayOfWeek() == displayData.day.day
+                isCurrent = todayCompareService.isToday(displayData.day.day)
             ),
             weekSelectionViewModel = WeekSelectionViewModel(
                 available = schedule.weeks.map { it.meta },
                 selected = displayData.week.meta.weekNumber,
-                isCurrent = isCurrentWeek
+                isCurrent = todayCompareService.isCurrentWeek(meta)
             ),
             metaViewModel = MetaViewModel(
                 schedule.group,
@@ -158,27 +162,44 @@ class InitializeWidgetWorker @AssistedInject constructor(
             )
         )
 
-        val content = WidgetState.ContentState(
+        val content = WidgetState.Content(
             courseSelectionViewModel = courseSelection,
             groupSelectionViewModel = groupSelection,
-            widgetViewModel = WidgetLce.Content(widgetViewModel)
+            widgetLceState = WidgetLce.Content,
+            lastValidData = widgetViewModel
         )
 
-        GlanceAppWidgetManager(context)
-            .getGlanceIds(MyAppWidget::class.java).forEach{ glanceId ->
-
-                updateAppWidgetState(
-                    context = context,
-                    definition = ScheduleGlanceStateDefinition(),
-                    glanceId = glanceId,
-                    updateState = {
-                        content
-                    }
-                )
+        context.updateAllMyAppWidgetState {
+            content
         }
-
-        MyAppWidget().updateAll(context)
 
         return Result.success()
     }
+}
+
+suspend fun Context.updateAllMyAppWidgetState(updateState: suspend (WidgetState) -> WidgetState){
+    GlanceAppWidgetManager(this)
+        .getGlanceIds(MyAppWidget::class.java).forEach{ glanceId ->
+            updateAppWidgetState(
+                context = this,
+                definition = ScheduleGlanceStateDefinition(),
+                glanceId = glanceId,
+                updateState = updateState
+            )
+        }
+    this.updateAllMyAppWidget()
+}
+
+suspend fun Context.updateMyAppWidgetState(glanceId: GlanceId, updateState: suspend (WidgetState) -> WidgetState){
+    updateAppWidgetState(
+        context = this,
+        definition = ScheduleGlanceStateDefinition(),
+        glanceId = glanceId,
+        updateState = updateState
+    )
+    this.updateAllMyAppWidget()
+}
+
+suspend fun Context.updateAllMyAppWidget(){
+    MyAppWidget().updateAll(this)
 }

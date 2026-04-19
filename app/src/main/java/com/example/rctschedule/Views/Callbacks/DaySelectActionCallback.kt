@@ -4,11 +4,7 @@ import android.content.Context
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.updateAll
 import com.example.rctschedule.Di.entryPoints.WidgetEntry
-import com.example.rctschedule.Services.Repositories.GroupToggleRepository
-import com.example.rctschedule.Services.Repositories.ToggleData
-import com.example.rctschedule.Views.MyAppWidget
 import com.example.rctschedule.Views.SelectDayButtonType
 import com.example.rctschedule.Workers.InitializeWidgetWorker
 import kotlinx.coroutines.Dispatchers
@@ -38,23 +34,8 @@ class DaySelectActionCallback : ActionCallback {
                     schedule = it,
                     selectedDayOfWeek = day)
             }
-            //ep.getGroupToggleRepository().set(ToggleData.Default)
         }
 
         InitializeWidgetWorker.enqueue(context.applicationContext)
-    }
-}
-
-
-suspend fun updateAndCloseMenu(context: Context, repo: GroupToggleRepository) {
-    withContext(Dispatchers.Main) {
-        repo.set(ToggleData.Default)
-        MyAppWidget().updateAll(context)
-    }
-}
-
-suspend fun closeMenu(repo: GroupToggleRepository) {
-    withContext(Dispatchers.Main) {
-        repo.set(ToggleData.Default)
     }
 }

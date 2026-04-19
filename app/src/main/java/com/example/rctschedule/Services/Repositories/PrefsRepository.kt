@@ -1,6 +1,7 @@
 package com.example.rctschedule.Services.Repositories
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
@@ -18,11 +19,13 @@ inline fun <reified T> createJsonSerializer(defaultValue: T, json: Json = Json) 
 
     override suspend fun readFrom(input: InputStream): T {
         try {
+            Log.i("serializer", "[${T::class.simpleName}] Input bytes: ${input.available()}")
             return json.decodeFromString<T>(
                 input.readBytes().decodeToString()
             )
         } catch (serialization: SerializationException) {
-            throw CorruptionException("Unable to read", serialization)
+            Log.e("serializer", "Unable to read: $serialization")
+            return defaultValue
         }
     }
 

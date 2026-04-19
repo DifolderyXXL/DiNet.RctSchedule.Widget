@@ -7,6 +7,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.rctschedule.Repositories.ScheduleUpdater
 import com.example.rctschedule.UseCases.GetAppSettingsUseCase
+import com.example.rctschedule.ViewModels.Targeted.WidgetLce
+import com.example.rctschedule.ViewModels.Targeted.WidgetState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
@@ -25,6 +27,11 @@ class UpdateScheduleWorker @AssistedInject constructor(
             if (isStopped) {
                 Log.d("UpdateScheduleWorker", "Worker stopped before starting")
                 return Result.retry()
+            }
+
+            context.updateAllMyAppWidgetState {
+                (it as? WidgetState.Content)?.copy(widgetLceState = WidgetLce.Loading)
+                    ?: WidgetState.Empty
             }
 
             val settings = appSettingsUseCase()

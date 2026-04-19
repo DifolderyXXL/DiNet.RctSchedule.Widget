@@ -3,7 +3,6 @@ package com.example.rctschedule.Di.entryPoints
 import android.content.Context
 import com.example.rctschedule.Services.Parsing.ISheetRegularContextProvider
 import com.example.rctschedule.Services.Repositories.ApplicationSettingsRepository
-import com.example.rctschedule.Services.Repositories.GroupToggleRepository
 import com.example.rctschedule.UseCases.ChangeCourseUseCase
 import com.example.rctschedule.UseCases.ChangeGroupUseCase
 import com.example.rctschedule.UseCases.GetAppSettingsUseCase
@@ -28,7 +27,6 @@ interface WidgetEntryPoint {
     fun getSheetRegularContextProvider(): ISheetRegularContextProvider
     fun getGetAppSettingsUseCase(): GetAppSettingsUseCase
 
-    fun getGroupToggleRepository(): GroupToggleRepository
     fun getDaySelectionPresenter(): DaySelectionPresenter
     fun getWeekSelectionPresenter(): WeekSelectionPresenter
 

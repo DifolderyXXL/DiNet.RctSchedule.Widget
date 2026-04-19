@@ -28,7 +28,7 @@ class WorkerScheduler @Inject constructor(
         const val UPDATE_WORKER_FLEX_TIME_INTERVAL_MINUTES = 30L
     }
 
-    public val workManager by lazy { WorkManager.Companion.getInstance(context) }
+    public val workManager by lazy { WorkManager.getInstance(context) }
 
     fun getWidgetUpdateWorkerStatus() : List<WorkInfo>
     {
@@ -64,13 +64,6 @@ class WorkerScheduler @Inject constructor(
         Log.d("WorkerScheduler", "Worker scheduled/updated")
     }
 
-
-    fun observeWorkerStatus(callback: (WorkInfo?) -> Unit) {
-        workManager.getWorkInfosForUniqueWorkLiveData(UPDATE_WORKER_NAME)
-            .observeForever { workInfos ->
-                callback(workInfos.firstOrNull())
-            }
-    }
 
     fun forceRunNow() {
         val constraints = Constraints.Builder()

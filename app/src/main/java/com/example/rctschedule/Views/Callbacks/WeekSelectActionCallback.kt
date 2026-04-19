@@ -36,3 +36,4 @@ class WeekSelectActionCallback : ActionCallback {
         InitializeWidgetWorker.enqueue(context.applicationContext)
     }
 }
+

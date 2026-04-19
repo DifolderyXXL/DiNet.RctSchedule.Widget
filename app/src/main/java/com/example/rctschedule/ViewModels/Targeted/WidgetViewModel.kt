@@ -9,31 +9,31 @@ import java.time.DayOfWeek
 @Serializable
 sealed interface WidgetState{
     @Serializable
-    data object Loading : WidgetState
+    data object Empty : WidgetState
 
     @Serializable
-    data class Error(val error: String) : WidgetState
-
-    @Serializable
-    data class ContentState(
+    data class Content(
         val courseSelectionViewModel: CourseSelectionViewModel,
         val groupSelectionViewModel: GroupSelectionViewModel,
-        val widgetViewModel: WidgetLce
+        val widgetLceState: WidgetLce,
+        val lastValidData: WidgetViewModel?,
     ) : WidgetState
+
+    fun contentOrNull() : Content? = (this as? Content)
 }
 
 @Serializable
 sealed class WidgetLce {
     @Serializable data object Loading : WidgetLce()
-    @Serializable data class Content(val data: WidgetViewModel) : WidgetLce()
+    @Serializable data object Content : WidgetLce()
     @Serializable data class Error(
         val message: String,
-        val type: String,
+        val errType: String,
         val stacktrace: String? = null
     ) : WidgetLce(){
         constructor(e: Throwable) : this(
             message = e.message ?: "Unknown",
-            type = e.javaClass.simpleName,
+            errType = e.javaClass.simpleName,
             stacktrace = e.stackTraceToString()
         )
     }

@@ -2,10 +2,7 @@ package com.example.rctschedule.Services.Time
 
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.inject.Inject
-import javax.inject.Singleton
 
 interface TimeProvider{
     fun getCurrentDate() : LocalDate
@@ -36,3 +33,4 @@ class MockTimeProvider(private var fixedDate: LocalDate) : TimeProvider {
 
     override fun getCurrentDayOfWeek(): DayOfWeek = fixedDate.dayOfWeek
 }
+

@@ -11,25 +11,26 @@ import com.example.rctschedule.Workers.updateMyAppWidgetState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class GroupSelectActionCallback : ActionCallback {
+class CourseSelectActionCallback : ActionCallback {
     companion object{
-        val SELECT_GROUP_BUTTON_KEY = ActionParameters.Key<Int>("SELECT_GROUP_BUTTON_KEY")
+        val SELECT_COURSE_BUTTON_KEY = ActionParameters.Key<Int>("SELECT_COURSE_BUTTON_KEY")
     }
+
 
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        val groupId = parameters[SELECT_GROUP_BUTTON_KEY] ?: return
+        val course = parameters[SELECT_COURSE_BUTTON_KEY] ?: return
 
-        val ep = WidgetEntry.get(context.applicationContext)
+        val ep = WidgetEntry.Companion.get(context.applicationContext)
 
         withContext(Dispatchers.IO)
         {
-            val useCase = ep.getChangeGroupUseCase()
+            val useCase = ep.getChangeCourseUseCase()
 
-            useCase.changeGroup(groupId)
+            useCase.changeCourse(course)
         }
 
         context.updateMyAppWidgetState(glanceId) {
@@ -37,7 +38,6 @@ class GroupSelectActionCallback : ActionCallback {
                 ?: it
         }
 
-        InitializeWidgetWorker.enqueue(context.applicationContext)
+        InitializeWidgetWorker.Companion.enqueue(context.applicationContext)
     }
 }
-
