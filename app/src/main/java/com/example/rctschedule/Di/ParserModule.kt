@@ -47,15 +47,15 @@ object ParserModule {
 
         provider.addContext(GapSheetRegularContext(
             listOf("N"), 1, 10, 5, 100
-        ))
+        ).specifyMetaGroupNameRow(4))
 
         provider.addContext(GapSheetRegularContext(
             listOf("N"), 2, 10, 5, 100
-        ))
+        ).specifyMetaGroupNameRow(4))
 
         provider.addContext(GapSheetRegularContext(
             listOf("N", "S"), 3, 9, 5, 100
-        ))
+        ).specifyMetaGroupNameRow(4))
 
         return provider
     }

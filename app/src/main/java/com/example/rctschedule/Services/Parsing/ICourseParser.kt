@@ -13,6 +13,7 @@ class CourseParser(
     private val regularContext: ISheetRegularContext,
     private val regularSheetParser: IRegularSheetParser,
     private val metadataParser: ISheetMetadataParser,
+    private val metaGroupNameParser: MetaGroupNameParser,
     private val webApi: IWebApi
 ) : ICourseParser{
 
@@ -31,7 +32,8 @@ class CourseParser(
 
                 val sheet = workbook.getSheetAt(i)
 
-                val meta = metadataParser.parse(sheet)
+                val name = metaGroupNameParser.getName(sheet, group, regularContext.getMetadataSheetContext())
+                val meta = metadataParser.parse(sheet).copy(groupSpecificName = name)
                 val table =  regularSheetParser.parse(sheet, group, regularContext)
 
                 weeks.add(GroupExcelTableDTO(

@@ -8,6 +8,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -37,6 +38,7 @@ import com.example.rctschedule.Services.Repositories.States.ToggleData
 import com.example.rctschedule.Services.Repositories.States.ToggleWindow
 import com.example.rctschedule.ViewModels.Targeted.CourseSelectionViewModel
 import com.example.rctschedule.ViewModels.Targeted.GroupSelectionViewModel
+import com.example.rctschedule.ViewModels.Targeted.MetaViewModel
 import com.example.rctschedule.ViewModels.Targeted.WidgetLce
 import com.example.rctschedule.ViewModels.Targeted.WidgetState
 import com.example.rctschedule.ViewModels.Targeted.WidgetViewModel
@@ -57,16 +59,37 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Date
 
+@Composable
+fun metaTextStyle() = TextStyle(
+    color = GlanceTheme.colors.onSurface,
+    fontSize = 12.sp
+)
+@Composable
+fun MetaRow(metaViewModel: MetaViewModel){
 
+    if(metaViewModel.metaGroupName != null){
+        val name = metaViewModel.metaGroupName
+            .split('\n')
+            .joinToString(", ")
+
+        Box(GlanceModifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Text(name,
+                style = metaTextStyle(),
+                maxLines = 1)
+        }
+    }
+}
 @Composable
 fun WidgetViewModelView(viewModel: WidgetViewModel,
                         entryPoint: WidgetEntryPoint){
     Column(GlanceModifier.fillMaxSize()){
+        LastUpdateTime(Date(viewModel.contentViewModel.updateTimestamp))
+
         val day = entryPoint.getDaySelectionPresenter()
             .present(viewModel.weekSelectionViewModel, viewModel.daySelectionViewModel)
         DaySelectionView(day).ComposableDraw(GlanceModifier)
 
-        LastUpdateTime(Date(viewModel.contentViewModel.updateTimestamp))
+        MetaRow(viewModel.metaViewModel)
 
         WeekView(viewModel.contentViewModel)
             .ComposableDraw(GlanceModifier.defaultWeight())
@@ -134,7 +157,8 @@ private fun LastUpdateTime(lastUpdate: Date)
             .toLocalDateTime()
     )
     val context = LocalContext.current
-    SurfaceText("${context.getString(R.string.last_update)} $dt")
+    Text("${context.getString(R.string.last_update)} $dt",
+        style = metaTextStyle())
 }
 
 @Composable

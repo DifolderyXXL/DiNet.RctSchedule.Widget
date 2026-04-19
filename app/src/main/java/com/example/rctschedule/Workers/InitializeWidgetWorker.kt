@@ -58,7 +58,7 @@ class InitializeWidgetWorker @AssistedInject constructor(
             val oneTimeRequest = OneTimeWorkRequestBuilder<InitializeWidgetWorker>()
                 .addTag("initialize")
                 .setConstraints(constraints)
-                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+//              .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
 
             workManager.enqueueUniqueWork(
@@ -154,7 +154,8 @@ class InitializeWidgetWorker @AssistedInject constructor(
             metaViewModel = MetaViewModel(
                 schedule.group,
                 displayData.week.meta.weekNumber,
-                displayData.week.meta.dateRange
+                displayData.week.meta.dateRange,
+                meta.groupSpecificName
             ),
             contentViewModel = ContentViewModel(
                 displayData.day.weekTable,

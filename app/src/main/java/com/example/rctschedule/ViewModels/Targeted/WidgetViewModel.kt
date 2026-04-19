@@ -73,7 +73,8 @@ data class WeekSelectionViewModel(
 data class MetaViewModel(
     val group: Int,
     val week: Int,
-    val dateRange: DateRange
+    val dateRange: DateRange,
+    val metaGroupName: String?
 )
 
 @Serializable

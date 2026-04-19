@@ -10,7 +10,8 @@ class CourseParserProvider @Inject constructor(
     private val webApi: IWebApi,
     private val metadataParser: ISheetMetadataParser,
     private val regularSheetParser: IRegularSheetParser,
-    private val contextProvider: ISheetRegularContextProvider
+    private val contextProvider: ISheetRegularContextProvider,
+    private val metaGroupNameParser: MetaGroupNameParser
 ) : ICourseParserProvider{
     override fun get(course: Int): ICourseParser {
         val context = contextProvider.get(course)
@@ -19,6 +20,7 @@ class CourseParserProvider @Inject constructor(
             context,
             regularSheetParser,
             metadataParser,
+            metaGroupNameParser,
             webApi
         )
     }

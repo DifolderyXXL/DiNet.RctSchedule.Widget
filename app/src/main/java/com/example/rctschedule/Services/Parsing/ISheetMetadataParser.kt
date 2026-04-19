@@ -1,5 +1,6 @@
 package com.example.rctschedule.Services.Parsing
 
+import com.example.rctschedule.Data.ColumnArgument
 import com.example.rctschedule.Data.primitives.DateRange
 import com.example.rctschedule.Model.ScheduleMeta
 import org.apache.poi.ss.usermodel.Sheet
@@ -12,11 +13,49 @@ interface ISheetMetadataParser{
     fun parse(sheet: Sheet) : ScheduleMeta
 }
 
+interface IMetadataSheetContext{
+    fun getMetaGroupNameRow() : Int
+    fun getMetaGroupNameColumn(group: Int): ColumnArgument
+}
+class MetadataSheetContext(private val groupNameRow: Int,
+                           private val regularContext: ISheetRegularContext)
+    : IMetadataSheetContext{
+    override fun getMetaGroupNameRow(): Int {
+        return groupNameRow
+    }
+
+    override fun getMetaGroupNameColumn(group: Int): ColumnArgument {
+        return regularContext.getContentForGroupColumn(group)
+    }
+}
+
+
+class MetaGroupNameParser @Inject constructor(){
+    fun getName(sheet: Sheet, group: Int, context: IMetadataSheetContext?) : String?{
+        if(context == null)
+            return null
+
+        try {
+            val column = context.getMetaGroupNameColumn(group)
+            val row = sheet.getRow(context.getMetaGroupNameRow())
+
+            for(i in 0..column.colCount){
+                val content = row.getCell(column.startCol+i)?.stringCellValue
+
+                if(content != null)
+                    return content
+            }
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+        return null
+    }
+}
+
 class RctSheetMetadataParser @Inject constructor() : ISheetMetadataParser{
     private val tableNameRegular = Regex("\\D*(?<fromDate>\\d*.\\d*)[^-]*-\\D*(?<toDate>\\d{2}.\\d{2})\\s*\\D*(?<weekNumber>\\d*)")
 
     override fun parse(sheet: Sheet): ScheduleMeta {
-
         val r = tableNameRegular.find(sheet.sheetName)
             ?: throw Exception("Can't parse sheet name")
 
@@ -39,7 +78,7 @@ class RctSheetMetadataParser @Inject constructor() : ISheetMetadataParser{
             toLocal)
         val weekNumberInt = weekNumber.value.toInt()
 
+
         return ScheduleMeta(dateRange, weekNumberInt)
     }
-
 }

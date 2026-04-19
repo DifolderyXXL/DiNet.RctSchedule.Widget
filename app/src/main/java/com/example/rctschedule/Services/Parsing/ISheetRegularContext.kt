@@ -12,6 +12,8 @@ interface ISheetRegularContext{
 
     fun getMetaColumnArgument(): ColumnArgument
     fun getContentForGroupColumn(group: Int): ColumnArgument
+
+    fun getMetadataSheetContext() : IMetadataSheetContext?
 }
 
 class GapSheetRegularContext(
@@ -19,7 +21,7 @@ class GapSheetRegularContext(
     private val course: Int,
     private val groupCount: Int,
     private val fromRow: Int,
-    private val toRow: Int
+    private val toRow: Int,
 ) : ISheetRegularContext{
 
     val metaColumnFromLetter = "B"
@@ -66,6 +68,19 @@ class GapSheetRegularContext(
             groupDefaultColumnCount,
             startCol
         )
+    }
+
+
+    private var metaContext: IMetadataSheetContext? = null
+
+    fun specifyMetaGroupNameRow(metaGroupNameRow: Int) : GapSheetRegularContext
+    {
+        metaContext = MetadataSheetContext(metaGroupNameRow, this)
+        return this
+    }
+
+    override fun getMetadataSheetContext(): IMetadataSheetContext? {
+        return metaContext
     }
 
 }

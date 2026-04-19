@@ -51,5 +51,6 @@ data class ScheduleGroupWeeksData(
 @Serializable
 data class ScheduleMeta(
     val dateRange: DateRange = DateRange(),
-    val weekNumber: Int = 0
+    val weekNumber: Int = 0,
+    val groupSpecificName: String? = null
 )
