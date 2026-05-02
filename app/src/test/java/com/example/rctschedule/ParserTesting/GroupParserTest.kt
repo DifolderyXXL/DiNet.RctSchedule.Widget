@@ -29,20 +29,4 @@ class GroupParserTest {
         hiltRule.inject()
     }
 
-    @Test
-    fun `happy path`() {
-        val colors= courseParserProvider.get(1).get(9).weeks.flatMap {
-            it.table.rows
-        }.flatMap {
-            it
-        }.map {
-            it.rgb
-        }.filter { it != null }
-            .distinct()
-
-
-
-
-        return
-    }
 }

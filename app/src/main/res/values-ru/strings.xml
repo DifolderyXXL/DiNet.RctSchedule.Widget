@@ -26,4 +26,5 @@
     <string name="about_app">Виджет с актуальным расписанием для РФиКТ</string>
     <string name="copy_stacktrace">Copy stacktrace</string>
     <string name="error">Ошибка</string>
+    <string name="nothing_happens_button_text">Ничего не происходит?</string>
 </resources>

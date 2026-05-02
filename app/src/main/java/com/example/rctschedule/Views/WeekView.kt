@@ -1,13 +1,20 @@
 package com.example.rctschedule.Views
 
+import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.Paint
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.appwidget.cornerRadius
@@ -15,13 +22,17 @@ import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.background
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxHeight
+import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.width
+import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Data.ExcelCell
 import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.R
@@ -123,6 +134,7 @@ class WeekView(val state: ContentViewModel) : GlanceView {
                 ColumnView(
                     GlanceModifier.width(column.width).fillMaxHeight(),
                     index != 3,
+                    index==2,
                     actualFontSize,
                     column.cells)
 
@@ -134,7 +146,10 @@ class WeekView(val state: ContentViewModel) : GlanceView {
     }
 
     @Composable
-    fun ColumnView(modifier: GlanceModifier, useEqualCellSizes: Boolean, fontSize: Float, message: List<CalculatedCell>){
+    fun ColumnView(modifier: GlanceModifier,
+                   useEqualCellSizes: Boolean,
+                   drawLogo: Boolean,
+                   fontSize: Float, message: List<CalculatedCell>){
         Column(modifier = modifier) {
             message.forEachIndexed { rowIndex, cell ->
                 val isLast = rowIndex == message.size - 1
@@ -144,11 +159,15 @@ class WeekView(val state: ContentViewModel) : GlanceView {
                 else GlanceModifier
                     .height(cell.height.dp)
 
+
                 CellView(
                     c = cell.cell,
                     modifier = modifier.width(cell.width.dp),
-                    fontSize = fontSize.sp
+                    fontSize = fontSize.sp,
+                    drawLogo = drawLogo
                 )
+
+
                 if (rowIndex < message.size - 1) {
                     Spacer(modifier = GlanceModifier.height(TableLayoutConfig.CellRowSpacing))
                 }
@@ -157,18 +176,33 @@ class WeekView(val state: ContentViewModel) : GlanceView {
     }
 
     @Composable
-    fun CellView(c: ExcelCell, modifier: GlanceModifier = GlanceModifier,  fontSize: TextUnit? = null) {
+    fun CellView(c: ExcelCell, modifier: GlanceModifier = GlanceModifier,  fontSize: TextUnit? = null, drawLogo: Boolean) {
         val background = ScheduleTheme.current.getMappedColor(
             c.rgb,
             GlanceTheme.colors.surfaceVariant
         )
 
-        Column(
+        Box(
             modifier = modifier
                 .fillMaxWidth()
                 .background(background),
-            verticalAlignment = Alignment.CenterVertically
+            contentAlignment = Alignment.CenterStart
         ) {
+            if(drawLogo){
+                Row(GlanceModifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.End) {
+                    Box(GlanceModifier.defaultWeight()){}
+                    Box(
+                        GlanceModifier.defaultWeight()
+                            .background(ImageProvider(R.drawable.rfctlogo),
+                                contentScale = ContentScale.Fit,
+                            )
+                    ){
+
+                    }
+                }
+            }
+
             SurfaceText(
                 text = c.value,
                 fontSize = fontSize

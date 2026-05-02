@@ -3,6 +3,7 @@ package com.example.rctschedule.Views
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceComposable
 import androidx.glance.GlanceModifier
@@ -29,6 +30,7 @@ import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.R
 import com.example.rctschedule.ViewModels.DaySelectionState
 import com.example.rctschedule.Views.Callbacks.DaySelectActionCallback
+import com.example.rctschedule.Views.Figures.SurfaceText
 import com.example.rctschedule.Views.Figures.round10dpBackground
 import com.example.rctschedule.Views.Figures.round8dpBackground
 import java.time.LocalDate
@@ -54,8 +56,8 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
         else GlanceTheme.colors.onBackground
 
 
-        Row(GlanceModifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.Horizontal.CenterHorizontally)
+        Box(GlanceModifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center)
         {
             showBackgroundIf(state.isTodaySelected, color)
             {
@@ -202,7 +204,9 @@ public fun ButtonWithoutMarker(background: ColorProvider,
                 style = androidx.glance.text.TextStyle(
                     color = foreground,
                     textAlign = TextAlign.Center,
+                    fontSize = 13.sp
                 ),
+                maxLines = 1
             )
         }
     }

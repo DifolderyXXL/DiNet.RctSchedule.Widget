@@ -11,7 +11,9 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.currentState
+import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.state.GlanceStateDefinition
@@ -22,6 +24,7 @@ import com.example.rctschedule.Views.Figures.round8dpBackground
 import com.example.rctschedule.Views.ViewStates.ContentStateView
 import com.example.rctschedule.Views.ViewStates.ErrorStateView
 import com.example.rctschedule.Views.ViewStates.LoadingStateView
+import com.example.rctschedule.Workers.InitializeWidgetWorker
 import kotlinx.serialization.json.Json
 import java.io.File
 
@@ -64,6 +67,12 @@ class MyAppWidget : GlanceAppWidget() {
         // operations.
 
         val entryPoint = WidgetEntry.get(context)
+
+        val state = getAppWidgetState(context, stateDefinition, id)
+
+        if (state is WidgetState.Empty) {
+            InitializeWidgetWorker.enqueue(context)
+        }
 
         provideContent {
             GlanceTheme()

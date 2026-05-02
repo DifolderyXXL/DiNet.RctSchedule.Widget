@@ -20,7 +20,6 @@ class ScheduleAppWidgetReceiver : GlanceAppWidgetReceiver() {
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
 
-
         Log.e("onUpdate", "Update Received")
     }
 

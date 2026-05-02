@@ -30,8 +30,6 @@ class WidgetApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
-        InitializeWidgetWorker.enqueue(scheduler.workManager)
-
         val s = scheduler.getWidgetUpdateWorkerStatus()
         val info = s?.joinToString { x -> x.state.name }
 

@@ -27,5 +27,6 @@
     <string name="about_app">Widget with an up-to-date schedule for RCT</string>
     <string name="copy_stacktrace">Copy stacktrace</string>
     <string name="error">Error</string>
+    <string name="nothing_happens_button_text">Nothing happened?</string>
 
 </resources>

@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.ColorFilter
@@ -54,6 +55,7 @@ import com.example.rctschedule.Views.Figures.content_round
 import com.example.rctschedule.Views.Figures.round10dpBackground
 import com.example.rctschedule.Views.WeekSelectionView
 import com.example.rctschedule.Views.WeekView
+import com.microsoft.schemas.office.visio.x2012.main.TextType
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -224,7 +226,8 @@ fun GroupHeader(
 
 @Composable
 fun HeaderRow(course: Int, group: Int, state: MutableState<ToggleData>, lceState: WidgetLce){
-    Row(GlanceModifier.fillMaxWidth()) {
+    Row(GlanceModifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically) {
         var backgroundGroup = GlanceTheme.colors.secondaryContainer
         var backgroundCourse = GlanceTheme.colors.secondaryContainer
 
@@ -260,6 +263,17 @@ fun HeaderRow(course: Int, group: Int, state: MutableState<ToggleData>, lceState
 
         Spacer(GlanceModifier.defaultWeight())
 
+        val dynamicAlphaColor = androidx.glance.color.ColorProvider(
+            day = Color(0x1A000000),
+            night = Color(0x1AFFFFFF)
+        )
+        Text("By Difoldery", style = TextStyle(
+            color = dynamicAlphaColor,
+            fontSize = 12.sp
+        ), maxLines = 1)
+
+        Spacer(GlanceModifier.defaultWeight())
+
         UpdateStateHeader(lceState)
     }
 }
@@ -285,9 +299,6 @@ fun SelectionToggleButton(
                     expanded,
                     window)
             })
-
-
-
 }
 
 

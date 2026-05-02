@@ -30,6 +30,7 @@ import androidx.navigation3.runtime.NavKey
 import com.example.rctschedule.R
 import com.example.rctschedule.ScheduleAppWidgetReceiver
 import com.example.rctschedule.Views.MyAppWidget
+import com.example.rctschedule.Workers.InitializeWidgetWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
