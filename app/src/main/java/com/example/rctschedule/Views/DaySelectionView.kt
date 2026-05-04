@@ -149,7 +149,7 @@ class DaySelectionView(val state: DaySelectionState) : GlanceView {
 }
 
 @Composable
-public fun ButtonWithMarker(background: ColorProvider,
+fun ButtonWithMarker(background: ColorProvider,
                             foreground: ColorProvider,
                             text: String,
                             marker: Boolean,
@@ -192,7 +192,7 @@ public fun ButtonWithMarker(background: ColorProvider,
 
 
 @Composable
-public fun ButtonWithoutMarker(background: ColorProvider,
+fun ButtonWithoutMarker(background: ColorProvider,
                                foreground: ColorProvider,
                                text: String,
                                modifier: GlanceModifier)

@@ -13,7 +13,6 @@ import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.currentState
-import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.state.GlanceStateDefinition
@@ -22,7 +21,6 @@ import com.example.rctschedule.Services.Repositories.createJsonSerializer
 import com.example.rctschedule.ViewModels.Targeted.WidgetState
 import com.example.rctschedule.Views.Figures.round8dpBackground
 import com.example.rctschedule.Views.ViewStates.ContentStateView
-import com.example.rctschedule.Views.ViewStates.ErrorStateView
 import com.example.rctschedule.Views.ViewStates.LoadingStateView
 import com.example.rctschedule.Workers.InitializeWidgetWorker
 import kotlinx.serialization.json.Json

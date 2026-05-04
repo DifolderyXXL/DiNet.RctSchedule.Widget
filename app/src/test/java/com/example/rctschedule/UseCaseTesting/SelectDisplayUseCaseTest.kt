@@ -1,8 +1,6 @@
 package com.example.rctschedule.UseCaseTesting
 
-import androidx.compose.material3.DateRangePicker
 import com.example.rctschedule.Data.primitives.DateRange
-import com.example.rctschedule.Model.CacheEntry
 import com.example.rctschedule.Model.ScheduleGroupWeeksData
 import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.Model.ScheduleWeekData
@@ -11,16 +9,11 @@ import com.example.rctschedule.Services.Repositories.WidgetDisplayModeRepository
 import com.example.rctschedule.Services.Time.TimeProvider
 import com.example.rctschedule.TransformExcelWeek
 import com.example.rctschedule.UseCases.GetWidgetDisplayDataUseCase
-import com.example.rctschedule.UseCases.SelectDisplayUseCase
-import com.example.rctschedule.UseCases.schedule.GetScheduleUseCase
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import junit.framework.TestCase.assertTrue
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import java.time.DayOfWeek

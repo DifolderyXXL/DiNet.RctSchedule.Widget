@@ -1,19 +1,12 @@
 package com.example.rctschedule.Views
 
-import android.graphics.Color
-import android.graphics.ColorMatrix
-import android.graphics.Paint
-import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
@@ -32,7 +25,6 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.width
-import androidx.glance.unit.ColorProvider
 import com.example.rctschedule.Data.ExcelCell
 import com.example.rctschedule.Model.ScheduleMeta
 import com.example.rctschedule.R
@@ -72,27 +64,6 @@ class WeekView(val state: ContentViewModel) : GlanceView {
             TableView(state.dayTable)
 
             Spacer(modifier = GlanceModifier.height(20.dp))
-        }
-    }
-
-    @Composable
-    private fun Header(metaState: ScheduleMeta, course: Int, group: Int)
-    {
-        Row(GlanceModifier.fillMaxWidth())
-        {
-            val formatter = DateTimeFormatter.ofPattern("dd MMM")
-
-            val context = LocalContext.current
-
-            SurfaceText(
-                "${formatter.format(metaState.dateRange.from)}-${
-                    formatter.format(
-                        metaState.dateRange.to
-                    )
-                }(${metaState.weekNumber}-${context.getString(R.string.week)}) " +
-                        "(${context.getString(R.string.course)} ${course}) " +
-                        "(${context.getString(R.string.group)} ${group+1})")
-
         }
     }
 

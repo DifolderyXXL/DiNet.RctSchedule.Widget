@@ -33,7 +33,7 @@ class WorkerScheduler @Inject constructor(
     fun getWidgetUpdateWorkerStatus() : List<WorkInfo>
     {
         return workManager.getWorkInfosForUniqueWork(UPDATE_WORKER_NAME)
-            .get()
+             .get()
     }
 
     fun scheduleWidgetUpdate() {

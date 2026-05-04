@@ -2,7 +2,6 @@ package com.example.rctschedule.Workers
 
 import android.content.Context
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
@@ -11,13 +10,10 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
-import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.example.rctschedule.Model.extensions.nextOnFailureAsync
-import com.example.rctschedule.R
 import com.example.rctschedule.Services.Parsing.ISheetRegularContextProvider
 import com.example.rctschedule.Services.Time.TodayMetadataCompareService
 import com.example.rctschedule.UseCases.GetAppSettingsUseCase

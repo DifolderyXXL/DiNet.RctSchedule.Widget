@@ -55,7 +55,6 @@ import com.example.rctschedule.Views.Figures.content_round
 import com.example.rctschedule.Views.Figures.round10dpBackground
 import com.example.rctschedule.Views.WeekSelectionView
 import com.example.rctschedule.Views.WeekView
-import com.microsoft.schemas.office.visio.x2012.main.TextType
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
