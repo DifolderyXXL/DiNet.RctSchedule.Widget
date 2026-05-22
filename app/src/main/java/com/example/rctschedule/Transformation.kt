@@ -56,6 +56,12 @@ public fun TransformTable(inputRows: List<List<ExcelCell>>, totalRows: Int, tota
 {
     val rows = ArrayList<TransformExcelRow>()
     var r = 0
+
+    if(inputRows.any(){it.size != totalCols})
+    {
+        throw NotImplementedError()
+    }
+
     while(r < totalRows)
     {
         var maxH = 1
@@ -68,7 +74,7 @@ public fun TransformTable(inputRows: List<List<ExcelCell>>, totalRows: Int, tota
 
         var tm = 0
         var c = 0
-        while(c < totalCols)
+        while(c < totalCols )
         {
             val col = ArrayList<ExcelCell>()
 

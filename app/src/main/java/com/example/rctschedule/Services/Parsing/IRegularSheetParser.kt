@@ -61,7 +61,7 @@ class RegularSheetParser @Inject constructor() : IRegularSheetParser{
             val rowData = mutableListOf<ExcelCell>()
 
 
-            for(c in colFrom..min(colTo, currentRow.lastCellNum.toInt()))
+            for(c in colFrom..colTo)
             {
 
                 val cell = currentRow.getCell(c)

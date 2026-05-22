@@ -17,7 +17,7 @@ class CourseParser(
     private val webApi: IWebApi
 ) : ICourseParser{
 
-    override fun get(group: Int): GroupExcelWeeksDTO? {
+    override fun get(group: Int): GroupExcelWeeksDTO {
         var workbook: XSSFWorkbook? = null
         try{
             workbook = webApi.provideSheetForCourse(
@@ -48,7 +48,7 @@ class CourseParser(
         }
         catch (e: Exception){
             workbook?.close()
-            return null
+            throw e
         }
 
     }

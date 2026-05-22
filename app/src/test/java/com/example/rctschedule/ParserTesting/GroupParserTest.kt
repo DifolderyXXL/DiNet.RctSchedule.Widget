@@ -1,30 +1,45 @@
 package com.example.rctschedule.ParserTesting
 
-import com.example.rctschedule.Services.Parsing.ICourseParserProvider
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
-import dagger.hilt.android.testing.HiltTestApplication
-import org.junit.Before
-import org.junit.Rule
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import javax.inject.Inject
+import com.example.rctschedule.Services.Parsing.GapSheetRegularContext
+import com.example.rctschedule.Services.Parsing.RegularSheetParser
+import com.example.rctschedule.Services.Parsing.SheetRegularContextProvider
+import junit.framework.Assert.assertEquals
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
-@HiltAndroidTest
-@Config(application = HiltTestApplication::class)
-@RunWith(RobolectricTestRunner::class)
 class GroupParserTest {
+    private fun contextProvider() : SheetRegularContextProvider{
+        val provider = SheetRegularContextProvider()
 
-    @get:Rule
-    var hiltRule = HiltAndroidRule(this)
+        provider.addContext(GapSheetRegularContext(
+            listOf("N"), 1, 10, 5, 100
+        ).specifyMetaGroupNameRow(4))
 
-    @Inject
-    lateinit var courseParserProvider: ICourseParserProvider
+        provider.addContext(GapSheetRegularContext(
+            listOf("N"), 2, 10, 5, 100
+        ).specifyMetaGroupNameRow(4))
 
-    @Before
-    fun init() {
-        hiltRule.inject()
+        provider.addContext(GapSheetRegularContext(
+            listOf("N", "S"), 3, 9, 5, 100
+        ).specifyMetaGroupNameRow(4))
+
+        return provider
     }
 
+    @Test
+    fun `parse group 10 week 15 (issue with last columns)`() {
+        val resource = javaClass.getResourceAsStream("/2course15week.xlsx")
+        val wb = XSSFWorkbook(resource)
+        val sheet = wb.getSheetAt(0)
+
+        val parser = RegularSheetParser()
+
+        val context = contextProvider().get(2)
+        val result = parser.parse(sheet, 10, context)
+
+        assertTrue(result.rows.any(){ it.size == result.totalCols })
+        assertTrue(result.rows.size == result.totalRows)
+    }
 }
